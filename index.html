@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#6366f1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.png" type="image/png">
+<link rel="apple-touch-icon" href="icon.png">
+<title>管理ログ</title>
+<style>
+:root{
+  --p:#6366f1;--pd:#4f46e5;--pl:#a5b4fc;--pb:#eef2ff;
+  --g:#10b981;--gb:#d1fae5;
+  --r:#ef4444;--rb:#fef2f2;
+  --y:#f59e0b;--yb:#fffbeb;
+  --bg:#f1f5f9;--sur:#fff;--t:#0f172a;--t2:#475569;--t3:#94a3b8;
+  --bdr:#e2e8f0;--sh:0 1px 4px rgba(0,0,0,.08);--shl:0 8px 32px rgba(0,0,0,.14);
+  --rad:12px;--rads:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Hiragino Sans','Meiryo',sans-serif;background:var(--bg);color:var(--t);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.app{display:flex;height:100dvh;overflow:hidden}
+.sidebar{width:220px;background:var(--sur);border-right:1px solid var(--bdr);display:flex;flex-direction:column;flex-shrink:0;z-index:10}
+.sidebar-logo{padding:20px 18px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bdr)}
+.logo-icon{width:36px;height:36px;background:var(--p);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;font-weight:900;flex-shrink:0}
+.logo-text{font-size:1.1rem;font-weight:800;color:var(--t)}
+.nav{flex:1;padding:12px 10px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rads);color:var(--t2);font-size:.88rem;font-weight:600;cursor:pointer;transition:all .12s;border:none;background:none;width:100%;text-align:left;margin-bottom:2px}
+.nav-item:hover{background:var(--bg);color:var(--t)}
+.nav-item.active{background:var(--pb);color:var(--p)}
+.nav-item .icon{width:20px;height:20px;flex-shrink:0;opacity:.7}
+.nav-item.active .icon{opacity:1}
+.nav-badge{margin-left:auto;background:var(--r);color:#fff;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
+.sidebar-footer{padding:12px 10px;border-top:1px solid var(--bdr)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--sur);border-bottom:1px solid var(--bdr);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:1.05rem;font-weight:800;color:var(--t)}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.content{flex:1;overflow-y:auto;padding:24px}
+.btn{padding:8px 16px;border:none;border-radius:var(--rads);font-size:.83rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .12s;cursor:pointer;white-space:nowrap}
+.btn-p{background:var(--p);color:#fff}.btn-p:hover{background:var(--pd)}
+.btn-out{background:transparent;border:1.5px solid var(--bdr);color:var(--t2)}.btn-out:hover{background:var(--bg)}
+.btn-ghost{background:transparent;color:var(--t2)}.btn-ghost:hover{background:var(--bg)}
+.btn-danger{background:var(--rb);color:var(--r);border:1px solid #fecaca}.btn-danger:hover{background:#fee2e2}
+.btn-sm{padding:5px 10px;font-size:.76rem}
+.btn-xs{padding:3px 8px;font-size:.72rem}
+.btn-green{background:var(--g);color:#fff}.btn-green:hover{filter:brightness(.92)}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:50%}
+.card{background:var(--sur);border-radius:var(--rad);box-shadow:var(--sh);padding:20px}
+.card-sm{padding:14px 16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat-card{background:var(--sur);border-radius:var(--rad);box-shadow:var(--sh);padding:18px 20px}
+.stat-num{font-size:2rem;font-weight:800;line-height:1}
+.stat-label{font-size:.75rem;color:var(--t3);font-weight:600;margin-top:4px}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:500;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px;backdrop-filter:blur(2px)}
+.modal{background:var(--sur);border-radius:16px;width:100%;max-width:720px;box-shadow:var(--shl);animation:minIn .2s ease}
+@keyframes minIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center}
+.modal-head h2{font-size:1.05rem;font-weight:700}
+.modal-body{padding:24px;max-height:75vh;overflow-y:auto}
+.modal-foot{padding:14px 24px;border-top:1px solid var(--bdr);display:flex;justify-content:flex-end;gap:8px}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.fg label{font-size:.72rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.3px}
+.fg input,.fg select,.fg textarea{padding:9px 12px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.88rem;font-family:inherit;transition:border .12s;background:var(--sur);color:var(--t)}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.fg textarea{resize:vertical;min-height:64px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fgrid .full{grid-column:1/-1}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
+.badge-pre{background:#f1f5f9;color:#64748b}
+.badge-premonitor{background:#fef3c7;color:#d97706}
+.badge-monitor{background:#eff6ff;color:#3b82f6}
+.badge-contracted{background:var(--gb);color:#059669}
+.badge-lost{background:var(--rb);color:var(--r)}
+.badge-client{background:var(--pb);color:var(--p)}
+.pri-high{color:var(--r)}.pri-med{color:var(--y)}.pri-low{color:var(--g)}
+.client-row{background:var(--sur);border-radius:var(--rad);box-shadow:var(--sh);padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .12s;border:1.5px solid transparent;margin-bottom:8px}
+.client-row:hover{border-color:var(--pl);box-shadow:var(--shl);transform:translateY(-1px)}
+.avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:#fff;flex-shrink:0}
+.client-info{flex:1;min-width:0}
+.client-name{font-size:.95rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.client-meta{font-size:.76rem;color:var(--t2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.client-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.task-item{background:var(--sur);border-radius:var(--rads);padding:12px 16px;display:flex;align-items:flex-start;gap:12px;border:1.5px solid var(--bdr);margin-bottom:6px;transition:all .12s}
+.task-item:hover{border-color:var(--pl)}
+.task-item.done{opacity:.5}
+.task-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--bdr);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.task-check.checked{background:var(--g);border-color:var(--g);color:#fff}
+.task-body{flex:1;min-width:0}
+.task-title{font-size:.88rem;font-weight:600;line-height:1.4}
+.task-meta{font-size:.72rem;color:var(--t3);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap}
+.overdue{color:var(--r)!important;font-weight:700}
+.kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:12px}
+.kanban-col{min-width:220px;max-width:240px;flex-shrink:0}
+.kanban-head{font-size:.78rem;font-weight:700;padding:8px 12px;border-radius:var(--rads);margin-bottom:8px;display:flex;justify-content:space-between}
+.kanban-pre .kanban-head{background:#f1f5f9;color:#64748b}
+.kanban-premonitor .kanban-head{background:#fef3c7;color:#d97706}
+.kanban-monitor .kanban-head{background:#eff6ff;color:#3b82f6}
+.kanban-contracted .kanban-head{background:var(--gb);color:#059669}
+.kanban-lost .kanban-head{background:var(--rb);color:var(--r)}
+.kanban-card{background:var(--sur);border-radius:var(--rads);padding:12px;box-shadow:var(--sh);margin-bottom:8px;cursor:pointer;border:1.5px solid transparent;transition:all .12s}
+.kanban-card:hover{border-color:var(--pl)}
+.kanban-card-name{font-size:.85rem;font-weight:700}
+.kanban-card-meta{font-size:.72rem;color:var(--t2);margin-top:3px}
+.kanban-card-deal{font-size:.8rem;font-weight:700;color:var(--p);margin-top:6px}
+.tab-bar{display:flex;gap:2px;background:var(--bg);border-radius:var(--rads);padding:3px;margin-bottom:20px}
+.tab-btn{flex:1;padding:7px 12px;border:none;border-radius:6px;font-size:.8rem;font-weight:600;color:var(--t2);background:transparent;cursor:pointer;transition:all .12s}
+.tab-btn.active{background:var(--sur);color:var(--p);box-shadow:var(--sh)}
+.log-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.log-table th,.log-table td{padding:8px 12px;border-bottom:1px solid var(--bdr);text-align:center}
+.log-table th{font-size:.72rem;font-weight:700;color:var(--t3);text-align:center;background:var(--bg)}
+.log-table td:first-child{text-align:left;font-weight:600}
+.detail-tabs{display:flex;gap:2px;margin-bottom:16px}
+.detail-tab{padding:6px 14px;border-radius:var(--rads);border:none;font-size:.8rem;font-weight:600;color:var(--t2);background:transparent;cursor:pointer;transition:all .12s}
+.detail-tab.active{background:var(--pb);color:var(--p)}
+.meeting-item{border:1.5px solid var(--bdr);border-radius:var(--rads);padding:12px;margin-bottom:8px}
+.meeting-date{font-size:.75rem;font-weight:700;color:var(--p);margin-bottom:4px}
+.meeting-title{font-size:.9rem;font-weight:700}
+.meeting-body{font-size:.82rem;color:var(--t2);margin-top:6px;white-space:pre-wrap}
+.memo-item{background:var(--pb);border-radius:var(--rads);padding:10px 14px;margin-bottom:6px;font-size:.85rem;white-space:pre-wrap;position:relative}
+.memo-date{font-size:.7rem;color:var(--t3);margin-bottom:4px}
+/* 名刺 */
+.meishi-card{background:var(--sur);border-radius:var(--rad);box-shadow:var(--sh);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .12s;border:1.5px solid transparent;margin-bottom:8px}
+.meishi-card:hover{border-color:var(--pl);box-shadow:var(--shl);transform:translateY(-1px)}
+.tag-chip{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;background:var(--pb);color:var(--p);cursor:pointer;border:1.5px solid transparent}
+.tag-chip:hover,.tag-chip.active{background:var(--p);color:#fff}
+.tags-input{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;border:1.5px solid var(--bdr);border-radius:var(--rads);min-height:38px;align-items:center;cursor:text;background:var(--sur)}
+.tags-input:focus-within{border-color:var(--p);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.tags-input .itag{display:flex;align-items:center;gap:3px;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:600;background:var(--pb);color:var(--p)}
+.tags-input .itag button{background:none;border:none;cursor:pointer;color:var(--p);padding:0 2px;font-size:.8rem}
+.tags-input input{border:none;outline:none;font-size:.85rem;flex:1;min-width:80px;padding:2px 4px;background:transparent}
+/* OCR */
+.ocr-zone{border:2px dashed var(--pl);border-radius:var(--rad);padding:24px;text-align:center;background:var(--pb);transition:all .15s;cursor:pointer}
+.ocr-zone:hover,.ocr-zone.dragover{background:#c7d2fe;border-color:var(--p)}
+.ocr-prog{margin-top:12px}
+.ocr-bar{height:6px;background:var(--bdr);border-radius:3px;overflow:hidden}
+.ocr-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--g));border-radius:3px;transition:width .3s;width:0%}
+/* Scheduler */
+.sched-layout{display:grid;grid-template-columns:1fr 360px;gap:16px;height:calc(100dvh - 105px)}
+.sched-cal{border-radius:var(--rad);overflow:hidden;background:var(--sur);box-shadow:var(--sh)}
+.sched-cal iframe{width:100%;height:100%;border:none;display:block}
+.sched-right{overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.slot-item{background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rads);padding:10px 14px;display:flex;align-items:center;gap:10px}
+.slot-item .slot-text{flex:1;font-size:.88rem;font-weight:600;color:var(--p)}
+.gen-msg{width:100%;padding:12px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.83rem;font-family:inherit;resize:vertical;min-height:150px;background:var(--bg);line-height:1.8}
+@media(max-width:900px){.sched-layout{grid-template-columns:1fr;height:auto}.sched-cal{height:400px}}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .grid4{grid-template-columns:repeat(2,1fr)}
+  .grid3{grid-template-columns:repeat(2,1fr)}
+  .fgrid{grid-template-columns:1fr}
+  .content{padding:12px!important;padding-bottom:72px!important}
+  .topbar{padding:0 12px}
+  .topbar-title{font-size:.95rem}
+  .client-row{padding:10px 12px;gap:8px}
+  .avatar{width:38px;height:38px;font-size:.85rem}
+  .client-name{font-size:.88rem}
+  .client-meta{font-size:.7rem}
+  .stat-num{font-size:1.5rem}
+  .kanban{padding-bottom:80px}
+}
+/* ボトムナビ */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--sur);border-top:1px solid var(--bdr);z-index:200;padding:4px 0;padding-bottom:max(6px,env(safe-area-inset-bottom,6px));flex-direction:row}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px;border:none;background:transparent;color:var(--t3);font-size:.62rem;font-weight:600;font-family:inherit;cursor:pointer;position:relative;transition:color .12s}
+.bnav-item.active{color:var(--p)}
+.bnav-item svg{width:21px;height:21px;stroke-width:1.8}
+.bnav-badge{position:absolute;top:2px;right:calc(50% - 16px);background:var(--r);color:#fff;font-size:.55rem;font-weight:700;padding:0px 4px;border-radius:8px;min-width:14px;text-align:center}
+@media(max-width:768px){.bottom-nav{display:flex}}
+/* 同期ボタン */
+.sync-btn{display:flex;align-items:center;gap:6px;width:100%;padding:8px 12px;border:1.5px solid var(--bdr);border-radius:var(--rads);background:transparent;color:var(--t2);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .12s}
+.sync-btn:hover{background:var(--bg)}
+.hidden{display:none!important}
+.sep{height:1px;background:var(--bdr);margin:16px 0}
+.empty-state{text-align:center;padding:48px 20px;color:var(--t3)}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="icon.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
+      <span class="logo-text">管理ログ</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="showPage('home')" id="nav-home">
+        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        ホーム
+      </button>
+      <button class="nav-item" onclick="showPage('clients')" id="nav-clients">
+        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        クライアント
+      </button>
+      <button class="nav-item" onclick="showPage('tasks')" id="nav-tasks">
+        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        タスク
+        <span class="nav-badge hidden" id="task-badge">0</span>
+      </button>
+      <button class="nav-item" onclick="showPage('scheduler')" id="nav-scheduler">
+        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        日程提案
+      </button>
+      <button class="nav-item" onclick="showPage('log')" id="nav-log">
+        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        日次ログ
+      </button>
+      <div class="sep" style="margin:8px 0"></div>
+      <button class="nav-item" onclick="showPage('meishi')" id="nav-meishi">
+        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01M10 12h8"/></svg>
+        名刺
+      </button>
+      <button class="nav-item" onclick="showPage('settings')" id="nav-settings">
+        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        設定
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sync-btn" onclick="handleSync()">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+        <span class="sync-label">Google Drive 同期</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <span class="topbar-title" id="page-title">ホーム</span>
+      <div class="topbar-actions" id="topbar-actions">
+        <button class="btn btn-p btn-sm" onclick="openQuickAdd()">＋ 追加</button>
+      </div>
+    </header>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bnav-item active" id="bnav-home" onclick="showPage('home')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    ホーム
+  </button>
+  <button class="bnav-item" id="bnav-clients" onclick="showPage('clients')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    クライアント
+  </button>
+  <button class="bnav-item" id="bnav-tasks" onclick="showPage('tasks')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+    タスク
+    <span class="bnav-badge hidden" id="bnav-badge">0</span>
+  </button>
+  <button class="bnav-item" id="bnav-log" onclick="showPage('log')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    日次ログ
+  </button>
+  <button class="bnav-item" id="bnav-meishi" onclick="showPage('meishi')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01M10 12h8"/></svg>
+    名刺
+  </button>
+</nav>
+
+<div id="overlay" class="overlay hidden" onclick="overlayClick(event)">
+  <div class="modal" id="modal" onclick="event.stopPropagation()">
+    <div class="modal-head"><h2 id="modal-title"></h2><button class="btn btn-ghost btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot" id="modal-foot"></div>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+// ===== DATA =====
+const SK = 'saleshub_v1', MSK = 'businessCards', AK = 'geminiApiKey';
+let D = load();
+let MC = loadMeishi();
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(SK)) || defD(); } catch { return defD(); }
+}
+function defD() { return { clients: [], tasks: [], logs: [], calUrl: '', lastUpdated: Date.now() }; }
+function save() { D.lastUpdated = Date.now(); localStorage.setItem(SK, JSON.stringify(D)); updateBadge(); driveSave(); }
+function loadMeishi() { try { return JSON.parse(localStorage.getItem(MSK)) || []; } catch { return []; } }
+function saveMeishi() { localStorage.setItem(MSK, JSON.stringify(MC)); driveSave(); }
+
+// ===== UTILS =====
+const COLORS = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6'];
+function aColor(name) { let h=0; for(let c of (name||'')) h=(h*31+c.charCodeAt(0))%COLORS.length; return COLORS[h]; }
+function initials(name) { return (name||'?').split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function today() { return new Date().toISOString().slice(0,10); }
+function fmt(d) { if(!d) return ''; return new Date(d).toLocaleDateString('ja-JP',{month:'short',day:'numeric'}); }
+function fmtFull(d) { if(!d) return ''; return new Date(d).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'}); }
+function isOverdue(d) { return d && d < today(); }
+const SL = { pre:'商談前', premonitor:'モニター導入前', monitor:'モニター', contracted:'契約', lost:'失注' };
+const TASK_CAT = { '':'一般', client:'クライアント', repair:'改修', misc:'雑務' };
+const PL = { high:'🔴 高', med:'🟡 中', low:'🟢 低' };
+const DOW = ['日','月','火','水','木','金','土'];
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function v(id) { const el=document.getElementById(id); return el?el.value:''; }
+function num(id) { return Number(v(id))||0; }
+function clientName(id) { return D.clients.find(c=>c.id===id)?.name || ''; }
+
+function updateBadge() {
+  const pending = D.tasks.filter(t => !t.done).length;
+  const badge = document.getElementById('task-badge');
+  if(badge) { badge.textContent = pending; badge.classList.toggle('hidden', pending===0); }
+  const bbadge = document.getElementById('bnav-badge');
+  if(bbadge) { bbadge.textContent = pending; bbadge.classList.toggle('hidden', pending===0); }
+}
+
+// ===== NAVIGATION =====
+let currentPage = 'home';
+function showPage(p) {
+  currentPage = p;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const nav = document.getElementById('nav-'+p);
+  if(nav) nav.classList.add('active');
+  document.querySelectorAll('.bnav-item').forEach(n => n.classList.remove('active'));
+  const bnav = document.getElementById('bnav-'+p);
+  if(bnav) bnav.classList.add('active');
+  const titles = { home:'ホーム', clients:'クライアント', tasks:'タスク', scheduler:'日程提案', log:'日次ログ', meishi:'名刺', settings:'設定' };
+  document.getElementById('page-title').textContent = titles[p] || p;
+  document.getElementById('topbar-actions').innerHTML = '<button class="btn btn-p btn-sm" onclick="openQuickAdd()">＋ 追加</button>';
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+  el.style.padding = p === 'scheduler' ? '0' : '24px';
+  const fn = { home:renderHome, clients:renderClients, tasks:renderTasks, scheduler:renderScheduler, log:renderLog, meishi:renderMeishi, settings:renderSettings };
+  if(fn[p]) fn[p]();
+}
+
+// ===== HOME =====
+function renderHome() {
+  const el = document.getElementById('content');
+  const now = today();
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr = tomorrow.toISOString().slice(0,10);
+  const todayTasks = D.tasks.filter(t => !t.done && t.due === now);
+  const tomorrowTasks = D.tasks.filter(t => !t.done && t.due === tomorrowStr);
+  const doneTasks = D.tasks.filter(t => t.done);
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+  const weekDone = D.tasks.filter(t => t.done && t.doneAt && new Date(t.doneAt) >= weekAgo);
+  const log = D.logs.find(l => l.date === now);
+
+  const taskRow = t => `
+    <div class="task-item" style="cursor:default;margin-bottom:4px">
+      <div class="task-check ${t.done?'checked':''}" onclick="toggleTask('${t.id}')">✓</div>
+      <div class="task-body">
+        <div class="task-title" style="font-size:.85rem">${esc(t.title)}</div>
+        <div class="task-meta">
+          ${t.clientId?`<span>👤 ${esc(clientName(t.clientId))}</span>`:''}
+          ${t.category?`<span style="color:var(--p)">${esc(TASK_CAT[t.category]||t.category)}</span>`:''}
+          <span class="pri-${t.priority||'med'}">${PL[t.priority||'med']}</span>
+        </div>
+      </div>
+    </div>`;
+
+  el.innerHTML = `
+    <div class="grid4" style="margin-bottom:20px">
+      <div class="stat-card"><div class="stat-num" style="color:var(--p)">${doneTasks.length}</div><div class="stat-label">達成タスク累計</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--g)">${weekDone.length}</div><div class="stat-label">今週の達成</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--y)">${todayTasks.length}</div><div class="stat-label">今日のタスク</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--t2)">${tomorrowTasks.length}</div><div class="stat-label">明日のタスク</div></div>
+    </div>
+    <div class="grid2" style="margin-bottom:20px">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="font-size:.9rem;font-weight:700">📋 今日のタスク</h3>
+          <button class="btn btn-ghost btn-xs" onclick="showPage('tasks')">すべて →</button>
+        </div>
+        ${todayTasks.length ? todayTasks.map(taskRow).join('') : '<div class="empty-state" style="padding:16px"><p>今日のタスクなし</p></div>'}
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="font-size:.9rem;font-weight:700">📋 明日のタスク</h3>
+        </div>
+        ${tomorrowTasks.length ? tomorrowTasks.map(taskRow).join('') : '<div class="empty-state" style="padding:16px"><p>明日のタスクなし</p></div>'}
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h3 style="font-size:.9rem;font-weight:700">📊 今日のログ（${fmtFull(now)}）</h3>
+        <button class="btn btn-p btn-sm" onclick="openLogInput('${now}')">入力 / 編集</button>
+      </div>
+      ${log ? `
+        <div class="grid4">
+          <div class="stat-card card-sm" style="box-shadow:none;background:var(--bg)"><div class="stat-num" style="font-size:1.4rem">${log.apo||0}</div><div class="stat-label">アポ数</div></div>
+          <div class="stat-card card-sm" style="box-shadow:none;background:var(--bg)"><div class="stat-num" style="font-size:1.4rem">${log.meetings||0}</div><div class="stat-label">打ち合わせ</div></div>
+          <div class="stat-card card-sm" style="box-shadow:none;background:var(--bg)"><div class="stat-num" style="font-size:1.4rem">${log.proposals||0}</div><div class="stat-label">提案</div></div>
+          <div class="stat-card card-sm" style="box-shadow:none;background:var(--bg)"><div class="stat-num" style="font-size:1.4rem;color:var(--g)">${log.won||0}</div><div class="stat-label">受注</div></div>
+        </div>
+        ${log.memo?`<div style="margin-top:12px;font-size:.85rem;color:var(--t2);white-space:pre-wrap">${esc(log.memo)}</div>`:''}`
+      : '<div class="empty-state" style="padding:20px"><p>今日のログがまだありません</p></div>'}
+    </div>`;
+}
+
+// ===== CLIENTS =====
+let clientView = 'list', clientSearch = '', clientFilter = 'all';
+function renderClients() {
+  const el = document.getElementById('content');
+  document.getElementById('topbar-actions').innerHTML = `
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="text" placeholder="検索..." value="${esc(clientSearch)}" oninput="clientSearch=this.value;renderClients()" style="padding:7px 12px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.83rem;width:180px;background:var(--sur)">
+      <select onchange="clientFilter=this.value;renderClients()" style="padding:7px 10px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.83rem;background:var(--sur)">
+        <option value="all" ${clientFilter==='all'?'selected':''}>全ステータス</option>
+        ${Object.entries(SL).filter(([v])=>v!=='lost').map(([v,l])=>`<option value="${v}" ${clientFilter===v?'selected':''}>${l}</option>`).join('')}
+      </select>
+      <button class="btn btn-out btn-sm" onclick="clientView='list';renderClients()" style="${clientView==='list'?'background:var(--pb);color:var(--p)':''}">一覧</button>
+      <button class="btn btn-out btn-sm" onclick="clientView='kanban';renderClients()" style="${clientView==='kanban'?'background:var(--pb);color:var(--p)':''}">カンバン</button>
+      <button class="btn btn-p btn-sm" onclick="openClientForm()">＋ 追加</button>
+    </div>`;
+
+  // 失注は名刺へ。クライアント一覧には表示しない
+  let clients = D.clients.filter(c => {
+    if(c.status === 'lost') return false;
+    if(clientFilter !== 'all' && c.status !== clientFilter) return false;
+    if(clientSearch) {
+      const q = clientSearch.toLowerCase();
+      return (c.name||'').toLowerCase().includes(q) || (c.company||'').toLowerCase().includes(q);
+    }
+    return true;
+  });
+
+  if(clientView === 'kanban') {
+    el.innerHTML = `<div class="kanban">${['pre','premonitor','monitor','contracted'].map(s => `
+      <div class="kanban-col kanban-${s}">
+        <div class="kanban-head"><span>${SL[s]}</span><span>${clients.filter(c=>c.status===s).length}</span></div>
+        ${clients.filter(c=>c.status===s).map(c=>`
+          <div class="kanban-card" onclick="openClientDetail('${c.id}')">
+            <div class="kanban-card-name">${esc(c.company||c.name)}</div>
+            <div class="kanban-card-meta">${esc(c.name)}${c.clientType==='agency'?' · 代理店':' · 取引先'}</div>
+            ${c.ball?`<div style="font-size:.7rem;margin-top:4px">${c.ball==='us'||c.ball==='both'?'🟢':''} ${c.ball==='them'||c.ball==='both'?'🟡':''}</div>`:''}
+            ${c.ballNote?`<div style="font-size:.68rem;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.ballNote)}</div>`:''}
+            ${c.dealValue?`<div class="kanban-card-deal">¥${Number(c.dealValue).toLocaleString()}</div>`:''}
+          </div>`).join('')}
+      </div>`).join('')}</div>`;
+    return;
+  }
+
+  el.innerHTML = clients.length ? clients.map((c,i) => `
+    <div class="client-row" onclick="openClientDetail('${c.id}')">
+      <div style="display:flex;flex-direction:column;gap:2px;margin-right:4px">
+        <button class="btn btn-ghost btn-xs" style="padding:2px 5px;font-size:.7rem" onclick="event.stopPropagation();moveClient('${c.id}',-1)" ${i===0?'disabled':''}>▲</button>
+        <button class="btn btn-ghost btn-xs" style="padding:2px 5px;font-size:.7rem" onclick="event.stopPropagation();moveClient('${c.id}',1)" ${i===clients.length-1?'disabled':''}>▼</button>
+      </div>
+      <div class="avatar" style="background:${aColor(c.company||c.name)}">${initials(c.company||c.name)}</div>
+      <div class="client-info">
+        <div class="client-name">${esc(c.company||c.name)}</div>
+        <div class="client-meta">${[c.name,c.position].filter(Boolean).map(esc).join(' / ')}</div>
+        <div onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap">
+          ${ballBtn(c,'us','🟢 自分')}
+          ${ballBtn(c,'them','🟡 先方')}
+          <input id="bn-${c.id}" value="${esc(c.ballNote||'')}" placeholder="ボールメモ..." onclick="event.stopPropagation()" onblur="saveBallNote('${c.id}')" onkeydown="if(event.key==='Enter'){saveBallNote('${c.id}');this.blur()}" style="border:none;border-bottom:1px solid var(--bdr);font-size:.73rem;padding:1px 4px;background:transparent;color:var(--t2);flex:1;min-width:60px;outline:none">
+        </div>
+      </div>
+      <div class="client-right">
+        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+          <span class="badge" style="background:${c.clientType==='agency'?'#f0fdf4':'#eff6ff'};color:${c.clientType==='agency'?'#16a34a':'#2563eb'}">${c.clientType==='agency'?'代理店':'取引先'}</span>
+          <span class="badge badge-${c.status}">${SL[c.status]}</span>
+        </div>
+        ${c.dealValue?`<span style="font-size:.76rem;font-weight:700;color:var(--p)">¥${Number(c.dealValue).toLocaleString()}</span>`:''}
+      </div>
+    </div>`).join('') :
+    `<div class="empty-state"><p>クライアントがいません</p><button class="btn btn-p btn-sm" style="margin-top:12px" onclick="openClientForm()">＋ 追加する</button></div>`;
+}
+
+function moveClient(id, dir) {
+  const visibleIds = D.clients.filter(c=>c.status!=='lost').map(c=>c.id);
+  const vi = visibleIds.indexOf(id);
+  const vj = vi + dir;
+  if(vj < 0 || vj >= visibleIds.length) return;
+  const ai = D.clients.findIndex(c=>c.id===visibleIds[vi]);
+  const aj = D.clients.findIndex(c=>c.id===visibleIds[vj]);
+  [D.clients[ai], D.clients[aj]] = [D.clients[aj], D.clients[ai]];
+  save(); renderClients();
+}
+
+function ballBtn(c, side, label) {
+  const cur = c.ball || '';
+  const on = cur === side || cur === 'both';
+  const onStyle = side === 'us'
+    ? 'border-color:#10b981;background:var(--gb);color:#059669'
+    : 'border-color:#d97706;background:#fef3c7;color:#d97706';
+  const offStyle = 'border-color:var(--bdr);background:transparent;color:var(--t3)';
+  return `<button onclick="setBall('${c.id}','${side}')" style="padding:2px 10px;font-size:.7rem;border-radius:10px;border:1.5px solid;${on?onStyle:offStyle};cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s">${label}</button>`;
+}
+
+function setBall(id, side) {
+  const c = D.clients.find(x => x.id === id);
+  if(!c) return;
+  const cur = c.ball || '';
+  if(side === 'us') {
+    if(cur === 'us') c.ball = '';
+    else if(cur === 'them') c.ball = 'both';
+    else if(cur === 'both') c.ball = 'them';
+    else c.ball = 'us';
+  } else {
+    if(cur === 'them') c.ball = '';
+    else if(cur === 'us') c.ball = 'both';
+    else if(cur === 'both') c.ball = 'us';
+    else c.ball = 'them';
+  }
+  save(); renderClients();
+}
+
+function saveBallNote(id) {
+  const c = D.clients.find(x => x.id === id);
+  const el = document.getElementById('bn-' + id);
+  if(!c || !el) return;
+  c.ballNote = el.value;
+  save();
+}
+
+function openClientForm(id) {
+  const c = id ? D.clients.find(x=>x.id===id) : null;
+  showModal(c ? 'クライアント編集' : '新規クライアント', `
+    <div class="fgrid">
+      <div class="fg"><label>会社名 *</label><input id="cf-company" value="${esc(c?.company||'')}"></div>
+      <div class="fg"><label>担当者名</label><input id="cf-name" value="${esc(c?.name||'')}"></div>
+      <div class="fg"><label>種別</label>
+        <select id="cf-type">
+          <option value="direct" ${(c?.clientType||'direct')==='direct'?'selected':''}>取引先</option>
+          <option value="agency" ${c?.clientType==='agency'?'selected':''}>代理店</option>
+        </select>
+      </div>
+      <div class="fg"><label>ステータス</label>
+        <select id="cf-status">${Object.entries(SL).map(([v,l])=>`<option value="${v}" ${(c?.status||'pre')===v?'selected':''}>${l}</option>`).join('')}</select>
+      </div>
+      <div class="fg"><label>ボール（次のアクション）</label>
+        <select id="cf-ball">
+          <option value="" ${!c?.ball?'selected':''}>未設定</option>
+          <option value="us" ${c?.ball==='us'?'selected':''}>🟢 自分</option>
+          <option value="them" ${c?.ball==='them'?'selected':''}>🟡 先方</option>
+          <option value="both" ${c?.ball==='both'?'selected':''}>🟢🟡 両方</option>
+        </select>
+      </div>
+      <div class="fg full"><label>ボールメモ</label><input id="cf-ballnote" value="${esc(c?.ballNote||'')}" placeholder="例: 提案書を送付待ち"></div>
+      <div class="fg"><label>役職</label><input id="cf-position" value="${esc(c?.position||'')}"></div>
+      <div class="fg"><label>電話</label><input id="cf-phone" value="${esc(c?.phone||'')}"></div>
+      <div class="fg"><label>メール</label><input id="cf-email" type="email" value="${esc(c?.email||'')}"></div>
+      <div class="fg"><label>HP</label><input id="cf-hp" value="${esc(c?.hp||'')}"></div>
+      <div class="fg"><label>受注金額（円）</label><input id="cf-deal" type="number" value="${c?.dealValue||''}"></div>
+      <div class="fg full"><label>メモ</label><textarea id="cf-notes">${esc(c?.notes||'')}</textarea></div>
+    </div>
+    ${id&&c?.status!=='lost'?'<p style="font-size:.78rem;color:var(--t3);margin-top:-8px">※ ステータスを「失注」にすると名刺一覧に移動します</p>':''}
+    `, [
+    { label: c ? '保存' : '追加', cls: 'btn-p', action: () => saveClient(id) },
+    ...(c ? [{ label: '削除', cls: 'btn-danger', action: () => deleteClient(id) }] : [])
+  ]);
+}
+
+function saveClient(id) {
+  const company = document.getElementById('cf-company').value.trim();
+  const name = document.getElementById('cf-name').value.trim();
+  if(!company && !name) return alert('会社名または担当者名を入力してください');
+  const now = new Date().toISOString();
+  if(id) {
+    const c = D.clients.find(x=>x.id===id);
+    const newStatus = v('cf-status');
+    Object.assign(c, { name: name||company, company, position:v('cf-position'), status:newStatus, clientType:v('cf-type')||'direct', ball:v('cf-ball'), ballNote:v('cf-ballnote'), phone:v('cf-phone'), email:v('cf-email'), hp:v('cf-hp'), dealValue:v('cf-deal'), notes:v('cf-notes'), updatedAt:now });
+    // 失注 → 名刺に失注フラグを反映
+    if(newStatus === 'lost' && c.meishiId) {
+      const m = MC.find(x=>x.id===c.meishiId);
+      if(m) { m.clientStatus = 'lost'; saveMeishi(); }
+    } else if(newStatus !== 'lost' && c.meishiId) {
+      const m = MC.find(x=>x.id===c.meishiId);
+      if(m) { m.clientStatus = newStatus; saveMeishi(); }
+    }
+  } else {
+    const newId = uid();
+    const meishiId = uid();
+    // クライアント直接追加時は名刺にも登録
+    const mcEntry = { id:meishiId, name:name||company, company, position:v('cf-position'), phone:v('cf-phone'), email:v('cf-email'), hp:v('cf-hp'), notes:v('cf-notes'), clientStatus:'pre', clientId:newId, createdAt:Date.now(), updatedAt:Date.now() };
+    MC.push(mcEntry); saveMeishi();
+    D.clients.push({ id:newId, name:name||company, company, position:v('cf-position'), status:v('cf-status')||'pre', clientType:v('cf-type')||'direct', ball:v('cf-ball'), ballNote:v('cf-ballnote'), phone:v('cf-phone'), email:v('cf-email'), hp:v('cf-hp'), dealValue:v('cf-deal'), notes:v('cf-notes'), meishiId, tasks:[], meetings:[], memos:[], createdAt:now, updatedAt:now });
+  }
+  save(); closeModal(); renderClients();
+}
+
+function deleteClient(id) {
+  if(!confirm('削除しますか？')) return;
+  const c = D.clients.find(x=>x.id===id);
+  if(c?.meishiId) {
+    const m = MC.find(x=>x.id===c.meishiId);
+    if(m) { delete m.clientStatus; delete m.clientId; saveMeishi(); }
+  }
+  D.clients = D.clients.filter(c => c.id !== id);
+  save(); closeModal(); renderClients();
+}
+
+// ===== CLIENT DETAIL =====
+let detailTab = 'info';
+function openClientDetail(id) {
+  const c = D.clients.find(x => x.id === id);
+  if(!c) return;
+  detailTab = 'info';
+  renderClientDetail(c);
+}
+
+function renderClientDetail(c) {
+  const tabs = [['info','情報'],['tasks','タスク'],['meetings','議事録'],['memos','メモ']];
+  const tabBar = `<div class="detail-tabs">${tabs.map(([k,l])=>`<button class="detail-tab ${detailTab===k?'active':''}" onclick="detailTab='${k}';renderClientDetail(D.clients.find(x=>x.id==='${c.id}'))">${l}</button>`).join('')}</div>`;
+  let body = tabBar;
+
+  if(detailTab === 'info') {
+    body += `
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div class="avatar" style="width:60px;height:60px;font-size:1.3rem;background:${aColor(c.company||c.name)}">${initials(c.company||c.name)}</div>
+        <div>
+          <div style="font-size:1.2rem;font-weight:800">${esc(c.company||c.name)}</div>
+          <div style="font-size:.85rem;color:var(--t2)">${[c.name,c.position].filter(Boolean).map(esc).join(' / ')}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
+            <span class="badge badge-${c.status}">${SL[c.status]}</span>
+            <span class="badge" style="background:${c.clientType==='agency'?'#f0fdf4':'#eff6ff'};color:${c.clientType==='agency'?'#16a34a':'#2563eb'}">${c.clientType==='agency'?'代理店':'取引先'}</span>
+            ${(c.ball==='us'||c.ball==='both')?`<span class="badge" style="background:var(--gb);color:#059669">🟢 自分</span>`:''}
+            ${(c.ball==='them'||c.ball==='both')?`<span class="badge" style="background:#fef3c7;color:#d97706">🟡 先方</span>`:''}
+          </div>
+          ${c.ballNote?`<div style="font-size:.78rem;color:var(--t2);margin-top:4px">📝 ${esc(c.ballNote)}</div>`:''}
+        </div>
+      </div>
+      <div class="fgrid">
+        ${c.phone?`<div class="fg" style="margin:0"><label>電話</label><a href="tel:${esc(c.phone)}" style="font-size:.88rem;color:var(--p)">${esc(c.phone)}</a></div>`:''}
+        ${c.email?`<div class="fg" style="margin:0"><label>メール</label><a href="mailto:${esc(c.email)}" style="font-size:.88rem;color:var(--p)">${esc(c.email)}</a></div>`:''}
+        ${c.hp?`<div class="fg full" style="margin:0"><label>HP</label><a href="${esc(c.hp)}" target="_blank" style="font-size:.88rem;color:var(--p)">${esc(c.hp)}</a></div>`:''}
+        ${c.dealValue?`<div class="fg" style="margin:0"><label>受注金額</label><div style="font-size:.95rem;font-weight:700;color:var(--p)">¥${Number(c.dealValue).toLocaleString()}</div></div>`:''}
+        ${c.notes?`<div class="fg full" style="margin:0;margin-top:8px"><label>メモ</label><div style="font-size:.85rem;white-space:pre-wrap">${esc(c.notes)}</div></div>`:''}
+      </div>`;
+  }
+
+  if(detailTab === 'tasks') {
+    const ctasks = (c.tasks||[]).sort((a,b)=>a.done!==b.done?a.done?1:-1:(a.due||'9')>(b.due||'9')?1:-1);
+    body += `
+      <button class="btn btn-p btn-sm" style="margin-bottom:12px" onclick="openTaskForm(null,'${c.id}')">＋ タスク追加</button>
+      ${ctasks.map(t=>`
+        <div class="task-item ${t.done?'done':''}">
+          <div class="task-check ${t.done?'checked':''}" onclick="toggleClientTask('${c.id}','${t.id}')">✓</div>
+          <div class="task-body">
+            <div class="task-title">${esc(t.title)}</div>
+            <div class="task-meta">
+              ${t.due?`<span class="${isOverdue(t.due)&&!t.done?'overdue':''}">${fmt(t.due)}</span>`:''}
+              <span class="pri-${t.priority||'med'}">${PL[t.priority||'med']}</span>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-xs" onclick="delClientTask('${c.id}','${t.id}')">✕</button>
+        </div>`).join('') || '<div class="empty-state" style="padding:20px"><p>タスクなし</p></div>'}`;
+  }
+
+  if(detailTab === 'meetings') {
+    const meetings = (c.meetings||[]).sort((a,b)=>b.date>a.date?1:-1);
+    body += `
+      <button class="btn btn-p btn-sm" style="margin-bottom:12px" onclick="openMeetingForm('${c.id}')">＋ 議事録追加</button>
+      ${meetings.map(m=>`
+        <div class="meeting-item">
+          <div class="meeting-date">${fmtFull(m.date)}</div>
+          <div class="meeting-title">${esc(m.title)}</div>
+          ${m.summary?`<div class="meeting-body">${esc(m.summary)}</div>`:''}
+          ${m.nextActions?`<div style="margin-top:8px;padding:8px;background:var(--yb);border-radius:var(--rads);font-size:.8rem"><strong>次のアクション:</strong><br>${esc(m.nextActions)}</div>`:''}
+          <button class="btn btn-danger btn-xs" style="margin-top:8px" onclick="delMeeting('${c.id}','${m.id}')">削除</button>
+        </div>`).join('') || '<div class="empty-state" style="padding:20px"><p>議事録なし</p></div>'}`;
+  }
+
+  if(detailTab === 'memos') {
+    const memos = (c.memos||[]).sort((a,b)=>b.date>a.date?1:-1);
+    body += `
+      <div style="margin-bottom:12px;display:flex;gap:8px">
+        <textarea id="new-memo" placeholder="メモを入力..." style="flex:1;padding:9px 12px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.85rem;resize:none;min-height:72px;font-family:inherit"></textarea>
+        <button class="btn btn-p" onclick="addMemo('${c.id}')">追加</button>
+      </div>
+      ${memos.map(m=>`
+        <div class="memo-item">
+          <div class="memo-date">${fmtFull(m.date)}</div>
+          ${esc(m.text)}
+          <button onclick="delMemo('${c.id}','${m.id}')" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--t3);cursor:pointer">✕</button>
+        </div>`).join('') || '<div class="empty-state" style="padding:20px"><p>メモなし</p></div>'}`;
+  }
+
+  showModal(c.company||c.name, body, [{ label:'編集', cls:'btn-out', action:()=>{ closeModal(); openClientForm(c.id); }}], 'large');
+}
+
+function toggleClientTask(cid,tid){const c=D.clients.find(x=>x.id===cid);if(!c)return;const t=(c.tasks||[]).find(x=>x.id===tid);if(t){t.done=!t.done;save();renderClientDetail(c);}}
+function delClientTask(cid,tid){const c=D.clients.find(x=>x.id===cid);if(!c)return;c.tasks=(c.tasks||[]).filter(x=>x.id!==tid);save();renderClientDetail(c);}
+function addMemo(cid){const c=D.clients.find(x=>x.id===cid);const text=document.getElementById('new-memo').value.trim();if(!text||!c)return;(c.memos=c.memos||[]).push({id:uid(),date:today(),text});save();renderClientDetail(c);}
+function delMemo(cid,mid){const c=D.clients.find(x=>x.id===cid);if(!c)return;c.memos=(c.memos||[]).filter(m=>m.id!==mid);save();renderClientDetail(c);}
+function delMeeting(cid,mid){const c=D.clients.find(x=>x.id===cid);if(!c)return;c.meetings=(c.meetings||[]).filter(m=>m.id!==mid);save();renderClientDetail(c);}
+
+function openMeetingForm(cid) {
+  showModal('議事録追加', `
+    <div class="fg"><label>日付</label><input id="mf-date" type="date" value="${today()}"></div>
+    <div class="fg"><label>タイトル</label><input id="mf-title" placeholder="例: 初回打ち合わせ"></div>
+    <div class="fg"><label>内容・サマリー</label><textarea id="mf-summary"></textarea></div>
+    <div class="fg"><label>次のアクション</label><textarea id="mf-next"></textarea></div>
+  `, [{ label:'保存', cls:'btn-p', action:()=>{
+    const c=D.clients.find(x=>x.id===cid);
+    const title=document.getElementById('mf-title').value.trim();
+    if(!title)return alert('タイトルを入力');
+    (c.meetings=c.meetings||[]).push({id:uid(),date:v('mf-date'),title,summary:v('mf-summary'),nextActions:v('mf-next')});
+    save();closeModal();openClientDetail(cid);
+  }}]);
+}
+
+// ===== TASKS =====
+let taskFilter = 'pending';
+function renderTasks() {
+  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-p btn-sm" onclick="openTaskForm()">＋ タスク追加</button>`;
+  const el = document.getElementById('content');
+  let tasks = D.tasks.filter(t => {
+    if(taskFilter==='pending') return !t.done;
+    if(taskFilter==='today') return !t.done && t.due===today();
+    if(taskFilter==='done') return t.done;
+    return true;
+  }).sort((a,b)=>a.done!==b.done?a.done?1:-1:(a.due||'9')>(b.due||'9')?1:-1);
+
+  el.innerHTML = `
+    <div class="tab-bar" style="max-width:460px">${[['pending','未完了'],['today','今日'],['done','完了済み'],['all','すべて']].map(([k,l])=>`<button class="tab-btn ${taskFilter===k?'active':''}" onclick="taskFilter='${k}';renderTasks()">${l}</button>`).join('')}</div>
+    ${tasks.length ? tasks.map(t=>`
+      <div class="task-item ${t.done?'done':''}" onclick="openTaskForm('${t.id}')">
+        <div class="task-check ${t.done?'checked':''}" onclick="event.stopPropagation();toggleTaskList('${t.id}')">✓</div>
+        <div class="task-body">
+          <div class="task-title">${esc(t.title)}</div>
+          <div class="task-meta">
+            ${t.category?`<span style="color:var(--p);font-weight:700">${esc(TASK_CAT[t.category]||t.category)}</span>`:''}
+            ${t.clientId?`<span>👤 ${esc(clientName(t.clientId))}</span>`:''}
+            ${t.due?`<span class="${isOverdue(t.due)&&!t.done?'overdue':''}">${isOverdue(t.due)&&!t.done?'⚠ ':''}${fmt(t.due)}</span>`:''}
+            <span class="pri-${t.priority||'med'}">${PL[t.priority||'med']}</span>
+          </div>
+        </div>
+      </div>`).join('') : `<div class="empty-state"><p>タスクなし</p></div>`}`;
+}
+
+function toggleTaskList(id){const t=D.tasks.find(x=>x.id===id);if(t){t.done=!t.done;if(t.done)t.doneAt=new Date().toISOString();else delete t.doneAt;save();renderTasks();}}
+function toggleTask(id){const t=D.tasks.find(x=>x.id===id);if(t){t.done=!t.done;if(t.done)t.doneAt=new Date().toISOString();else delete t.doneAt;save();renderHome();}}
+
+function openTaskForm(id, clientId) {
+  const t = id ? D.tasks.find(x=>x.id===id) : null;
+  showModal(t?'タスク編集':'タスク追加', `
+    <div class="fg"><label>タイトル *</label><input id="tf-title" value="${esc(t?.title||'')}"></div>
+    <div class="fgrid">
+      <div class="fg"><label>カテゴリ</label>
+        <select id="tf-cat">${Object.entries(TASK_CAT).map(([v,l])=>`<option value="${v}" ${(t?.category||'')===v?'selected':''}>${l}</option>`).join('')}</select>
+      </div>
+      <div class="fg"><label>優先度</label>
+        <select id="tf-pri">${[['high','🔴 高'],['med','🟡 中'],['low','🟢 低']].map(([v,l])=>`<option value="${v}" ${(t?.priority||'med')===v?'selected':''}>${l}</option>`).join('')}</select>
+      </div>
+      <div class="fg"><label>期限</label><input id="tf-due" type="date" value="${t?.due||''}"></div>
+      <div class="fg"><label>クライアント</label>
+        <select id="tf-client"><option value="">なし</option>${D.clients.filter(c=>c.status!=='lost').map(c=>`<option value="${c.id}" ${(clientId||t?.clientId)===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="fg"><label>メモ</label><textarea id="tf-notes">${esc(t?.notes||'')}</textarea></div>
+  `, [
+    { label:t?'保存':'追加', cls:'btn-p', action:()=>saveTask(id,clientId) },
+    ...(t?[{label:'削除',cls:'btn-danger',action:()=>deleteTask(id)}]:[])
+  ]);
+}
+
+function saveTask(id, defClientId) {
+  const title = document.getElementById('tf-title').value.trim();
+  if(!title) return alert('タイトルを入力してください');
+  const clientId = v('tf-client');
+  const category = v('tf-cat');
+  const now = new Date().toISOString();
+  if(id) {
+    const t = D.tasks.find(x=>x.id===id);
+    Object.assign(t, {title,category,due:v('tf-due'),priority:v('tf-pri'),clientId,notes:v('tf-notes'),updatedAt:now});
+  } else {
+    const task = {id:uid(),title,category,due:v('tf-due'),priority:v('tf-pri'),clientId,notes:v('tf-notes'),done:false,createdAt:now};
+    if(clientId) { const c=D.clients.find(x=>x.id===clientId); if(c)(c.tasks=c.tasks||[]).push(task); }
+    D.tasks.push(task);
+  }
+  save(); closeModal();
+  if(currentPage==='tasks') renderTasks();
+  else if(currentPage==='home') renderHome();
+}
+
+function deleteTask(id){if(!confirm('削除しますか？'))return;D.tasks=D.tasks.filter(t=>t.id!==id);save();closeModal();renderTasks();}
+
+// ===== SCHEDULER (日程提案) =====
+let sSlots = [];
+let sDur = 60;
+let _msgLines = [];
+
+function getWeekStart(offset) {
+  const d = new Date();
+  const dow = d.getDay() || 7;
+  d.setDate(d.getDate() - dow + 1 + (offset||0)*7);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function addMins(time, mins) {
+  const [h,m] = time.split(':').map(Number);
+  const t = h*60+m+mins;
+  return `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+}
+
+function fmtSlot(s) {
+  const d = new Date(s.date);
+  return `${d.getMonth()+1}月${d.getDate()}日（${DOW[d.getDay()]}） ${s.start}〜${s.end}`;
+}
+
+function renderScheduler() {
+  const el = document.getElementById('content');
+  const calUrl = D.calUrl || '';
+
+  el.innerHTML = `
+    <div class="sched-layout">
+      <div class="sched-cal">
+        ${calUrl
+          ? `<iframe src="${esc(calUrl)}" allowfullscreen></iframe>`
+          : `<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px;text-align:center">
+              <div style="font-size:3rem">📅</div>
+              <p style="color:var(--t2);font-size:.88rem">Googleカレンダーの埋め込みURLを<br>設定ページで登録してください</p>
+              <button class="btn btn-p btn-sm" onclick="showPage('settings')">設定を開く</button>
+            </div>`}
+      </div>
+
+      <div class="sched-right">
+        <div class="card card-sm">
+          <h3 style="font-size:.88rem;font-weight:700;margin-bottom:10px">📅 候補日時を追加</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px" id="s-day-row">${weekBtns()}<button class="btn btn-out btn-sm" onclick="toggleDatePicker(this)">📅 日付指定</button></div>
+          <input type="date" id="s-date" value="${today()}" style="display:none;margin-bottom:8px;width:100%;padding:8px;border:1.5px solid var(--p);border-radius:var(--rads);font-size:.88rem;font-family:inherit" onchange="onDatePickerChange(this.value)">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+            <input type="time" id="s-start" value="10:00" style="flex:1;padding:8px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.88rem;font-family:inherit">
+            <span style="color:var(--t3);font-weight:700;flex-shrink:0">〜</span>
+            <input type="time" id="s-end" value="11:00" style="flex:1;padding:8px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.88rem;font-family:inherit">
+            <button class="btn btn-p" style="flex-shrink:0;height:38px" onclick="addSlot()">＋</button>
+          </div>
+        </div>
+
+        <div class="card card-sm">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h3 style="font-size:.88rem;font-weight:700">候補リスト</h3>
+            ${sSlots.length ? `<button class="btn btn-danger btn-xs" onclick="sSlots=[];renderScheduler()">クリア</button>` : ''}
+          </div>
+          ${sSlots.length ? sSlots.map((s,i) => `
+            <div class="slot-item">
+              <div class="slot-text">・${fmtSlot(s)}</div>
+              <button class="btn btn-ghost btn-xs" onclick="sSlots.splice(${i},1);renderScheduler()">✕</button>
+            </div>`).join('')
+          : '<p style="color:var(--t3);font-size:.82rem;text-align:center;padding:12px 0">左のカレンダーで空きを確認して追加してください</p>'}
+        </div>
+
+        <div class="card card-sm">
+          <h3 style="font-size:.88rem;font-weight:700;margin-bottom:10px">💬 メッセージ生成</h3>
+          <div class="fg" style="margin-bottom:8px"><label>冒頭文</label><textarea id="s-prefix" rows="2" style="font-size:.82rem;min-height:52px">お世話になっております。
+打合せの日程について、以下の日程でいかがでしょうか。</textarea></div>
+          <div class="fg" style="margin-bottom:10px"><label>締め文</label><textarea id="s-suffix" rows="2" style="font-size:.82rem;min-height:52px">ご都合の良い日程をお知らせください。
+よろしくお願いいたします。</textarea></div>
+          <button class="btn btn-p" style="width:100%;margin-bottom:8px" onclick="generateMsg()">メッセージを生成</button>
+          <div id="gen-result" class="hidden">
+            <textarea class="gen-msg" id="gen-text" readonly></textarea>
+            <button class="btn btn-green" style="width:100%;margin-top:8px" onclick="copyMsg()">📋 コピー</button>
+            <div id="copy-ok" class="hidden" style="text-align:center;color:var(--g);font-size:.82rem;margin-top:6px;font-weight:700">コピーしました！</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  // 最初のボタン（今日）をアクティブに
+  const firstBtn = document.querySelector('.s-day-btn');
+  if (firstBtn) { firstBtn.classList.remove('btn-out'); firstBtn.classList.add('btn-p'); }
+}
+
+function weekBtns() {
+  const DOW2 = ['日','月','火','水','木','金','土'];
+  const now = new Date();
+  const btns = [];
+  // 今日〜6日先まで
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now); d.setDate(now.getDate() + i);
+    const dow = d.getDay();
+    if (dow === 0) continue; // 日曜スキップ
+    const val = d.toISOString().slice(0,10);
+    const label = i === 0 ? '今日' : i === 1 ? '明日' : `${d.getMonth()+1}/${d.getDate()}(${DOW2[dow]})`;
+    btns.push(`<button class="btn btn-out btn-sm s-day-btn" data-val="${val}" onclick="selectDay('${val}',this)">${label}</button>`);
+  }
+  return btns.join('');
+}
+
+function selectDay(val, el) {
+  document.getElementById('s-date').value = val;
+  document.getElementById('s-date').style.display = 'none';
+  document.querySelectorAll('.s-day-btn').forEach(b => { b.classList.remove('btn-p'); b.classList.add('btn-out'); });
+  el.classList.remove('btn-out');
+  el.classList.add('btn-p');
+}
+
+function toggleDatePicker(btn) {
+  const input = document.getElementById('s-date');
+  const isOpen = input.style.display !== 'none';
+  if (isOpen) {
+    input.style.display = 'none';
+    btn.classList.remove('btn-p'); btn.classList.add('btn-out');
+  } else {
+    input.style.display = 'block';
+    // クイックボタンの選択を外す
+    document.querySelectorAll('.s-day-btn').forEach(b => { b.classList.remove('btn-p'); b.classList.add('btn-out'); });
+    btn.classList.remove('btn-out'); btn.classList.add('btn-p');
+    input.showPicker?.();
+  }
+}
+
+function onDatePickerChange(val) {
+  document.getElementById('s-date').value = val;
+}
+
+function addSlot() {
+  const date = v('s-date'), start = v('s-start'), end = v('s-end');
+  if(!date) return alert('日付を選択してください');
+  if(!start || !end) return alert('開始・終了時間を入力してください');
+  if(start >= end) return alert('終了時間は開始時間より後にしてください');
+  sSlots.push({ date, start, end });
+  sSlots.sort((a,b) => (a.date+a.start) > (b.date+b.start) ? 1 : -1);
+  renderScheduler();
+}
+
+function generateMsg() {
+  if(!sSlots.length) return alert('候補日時を追加してください');
+  const prefix = v('s-prefix'), suffix = v('s-suffix');
+  const lines = sSlots.map(s => `・${fmtSlot(s)}`);
+  const msg = [prefix, '', ...lines, '', suffix].join('\n').replace(/\n{3,}/g,'\n\n').trim();
+  document.getElementById('gen-text').value = msg;
+  document.getElementById('gen-result').classList.remove('hidden');
+  document.getElementById('copy-ok').classList.add('hidden');
+}
+
+function copyMsg() {
+  navigator.clipboard.writeText(document.getElementById('gen-text').value).then(()=>{
+    document.getElementById('copy-ok').classList.remove('hidden');
+    setTimeout(()=>document.getElementById('copy-ok')?.classList.add('hidden'),2000);
+  });
+}
+
+// ===== LOG =====
+function renderLog() {
+  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-p btn-sm" onclick="openLogInput('${today()}')">＋ 今日のログ</button>`;
+  const el = document.getElementById('content');
+  const logs = [...D.logs].sort((a,b)=>b.date>a.date?1:-1);
+  const thisMonth = today().slice(0,7);
+  const monthLogs = logs.filter(l=>l.date.slice(0,7)===thisMonth);
+  const sum = k => monthLogs.reduce((s,l)=>s+(Number(l[k])||0),0);
+
+  el.innerHTML = `
+    <div class="grid4" style="margin-bottom:20px">
+      <div class="stat-card"><div class="stat-num" style="color:var(--p)">${sum('apo')}</div><div class="stat-label">今月アポ数</div></div>
+      <div class="stat-card"><div class="stat-num">${sum('meetings')}</div><div class="stat-label">今月打ち合わせ</div></div>
+      <div class="stat-card"><div class="stat-num">${sum('proposals')}</div><div class="stat-label">今月提案</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--g)">${sum('won')}</div><div class="stat-label">今月受注</div></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:.9rem;font-weight:700;margin-bottom:16px">日次ログ（直近30日）</h3>
+      <div style="overflow-x:auto">
+        <table class="log-table">
+          <thead><tr><th>日付</th><th>アポ</th><th>打合</th><th>提案</th><th>受注</th><th>売上</th><th>メモ</th><th></th></tr></thead>
+          <tbody>${logs.slice(0,30).length ? logs.slice(0,30).map(l=>`
+            <tr>
+              <td>${fmtFull(l.date)}</td><td>${l.apo||0}</td><td>${l.meetings||0}</td><td>${l.proposals||0}</td><td>${l.won||0}</td>
+              <td>${l.revenue?'¥'+Number(l.revenue).toLocaleString():'-'}</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left">${esc(l.memo||'')}</td>
+              <td><button class="btn btn-ghost btn-xs" onclick="openLogInput('${l.date}')">編集</button></td>
+            </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--t3);padding:24px">ログなし</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function openLogInput(date) {
+  const l = D.logs.find(x=>x.date===date)||{};
+  showModal(`ログ入力 - ${fmtFull(date)}`, `
+    <div class="fgrid">
+      <div class="fg"><label>アポ数</label><input id="lf-apo" type="number" min="0" value="${l.apo||0}"></div>
+      <div class="fg"><label>打ち合わせ数</label><input id="lf-meetings" type="number" min="0" value="${l.meetings||0}"></div>
+      <div class="fg"><label>提案数</label><input id="lf-proposals" type="number" min="0" value="${l.proposals||0}"></div>
+      <div class="fg"><label>受注数</label><input id="lf-won" type="number" min="0" value="${l.won||0}"></div>
+      <div class="fg"><label>売上（円）</label><input id="lf-revenue" type="number" min="0" value="${l.revenue||''}"></div>
+    </div>
+    <div class="fg"><label>メモ・所感</label><textarea id="lf-memo">${esc(l.memo||'')}</textarea></div>
+  `, [{label:'保存',cls:'btn-p',action:()=>saveLog(date)}]);
+}
+
+function saveLog(date) {
+  const idx = D.logs.findIndex(x=>x.date===date);
+  const entry = {date,apo:num('lf-apo'),meetings:num('lf-meetings'),proposals:num('lf-proposals'),won:num('lf-won'),revenue:num('lf-revenue'),memo:v('lf-memo')};
+  if(idx>=0) D.logs[idx]=entry; else D.logs.push(entry);
+  save(); closeModal();
+  if(currentPage==='log') renderLog();
+  else if(currentPage==='home') renderHome();
+}
+
+// ===== MEISHI (名刺管理) =====
+let meishiSearch = '', meishiTag = '';
+
+function renderMeishi() {
+  document.getElementById('topbar-actions').innerHTML = `
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="text" placeholder="検索..." value="${esc(meishiSearch)}" oninput="meishiSearch=this.value;renderMeishi()" style="padding:7px 12px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.83rem;width:180px;background:var(--sur)">
+      <button class="btn btn-out btn-sm" onclick="openMeishiForm()">✏ 手動登録</button>
+      <button class="btn btn-green btn-sm" onclick="openMeishiScan()">📷 スキャン</button>
+    </div>`;
+
+  const el = document.getElementById('content');
+  const allTags = getMeishiTags();
+
+  let list = MC.filter(c => {
+    const text = [c.name,c.company,c.position,c.jobType,c.tags,c.phone,c.email].join(' ').toLowerCase();
+    if(meishiSearch && !text.includes(meishiSearch.toLowerCase())) return false;
+    if(meishiTag && !(c.tags||'').split(',').map(t=>t.trim()).includes(meishiTag)) return false;
+    return true;
+  }).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+
+  const now = new Date(), ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const week = Date.now()-7*86400000;
+
+  el.innerHTML = `
+    <div class="grid3" style="margin-bottom:16px">
+      <div class="stat-card"><div class="stat-num" style="color:var(--p)">${MC.length}</div><div class="stat-label">全登録数</div></div>
+      <div class="stat-card"><div class="stat-num">${MC.filter(c=>c.metDate&&c.metDate.startsWith(ym)).length}</div><div class="stat-label">今月の出会い</div></div>
+      <div class="stat-card"><div class="stat-num">${MC.filter(c=>(c.createdAt||0)>week).length}</div><div class="stat-label">直近7日</div></div>
+    </div>
+    ${allTags.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+      <span class="tag-chip ${!meishiTag?'active':''}" onclick="meishiTag='';renderMeishi()">全て</span>
+      ${allTags.map(t=>`<span class="tag-chip ${meishiTag===t?'active':''}" onclick="meishiTag='${esc(t)}';renderMeishi()">${esc(t)}</span>`).join('')}
+    </div>` : ''}
+    ${list.length ? list.map(c=>{
+      const linkedClient = D.clients.find(x => x.meishiId === c.id || (x.name===c.name && x.company===c.company));
+      const isLost = linkedClient?.status === 'lost';
+      const isActive = linkedClient && !isLost;
+      return `
+      <div class="meishi-card" onclick="openMeishiDetail('${c.id}')">
+        <div class="avatar" style="background:${aColor(c.name||'?')};width:44px;height:44px;font-size:.95rem;flex-shrink:0">${(c.name||'?').slice(0,1)}</div>
+        <div class="client-info">
+          <div class="client-name">${esc(c.name||'')}</div>
+          <div class="client-meta">${[c.company,c.position].filter(Boolean).map(esc).join(' / ')||esc(c.jobType||'')}</div>
+        </div>
+        <div class="client-right">
+          ${isActive?`<span class="badge badge-${linkedClient.status}" style="font-size:.65rem">${SL[linkedClient.status]}</span>`:''}
+          ${isLost?'<span class="badge badge-lost" style="font-size:.65rem">失注</span>':''}
+          ${c.metDate?`<span style="font-size:.72rem;color:var(--t3)">${c.metDate}</span>`:''}
+          ${(c.tags||'').split(',').filter(Boolean).slice(0,2).map(t=>`<span class="tag-chip" style="font-size:.65rem;padding:2px 7px">${esc(t.trim())}</span>`).join('')}
+        </div>
+      </div>`;}).join('') : `<div class="empty-state"><p>名刺がありません<br><small>右上のボタンから登録してください</small></p></div>`}`;
+}
+
+function getMeishiTags() {
+  const s = new Set();
+  MC.forEach(c=>(c.tags||'').split(',').filter(Boolean).forEach(t=>s.add(t.trim())));
+  return [...s].sort();
+}
+
+const MFIELDS = ['name','gender','birthday','age','residence','phone','email','contact','company','position','jobType','workplace','hp','career','metDate','howMet','wantToConnect','introducedTo','introducedFrom','introduction','content','problem','solution','apo1Purpose','apo1Review','apo2Purpose','apo2Review','apo3Purpose','apo3Review'];
+
+function calcAge(birthday) {
+  if(!birthday) return '';
+  const b = new Date(birthday), t = new Date();
+  let age = t.getFullYear() - b.getFullYear();
+  if(t.getMonth() < b.getMonth() || (t.getMonth()===b.getMonth() && t.getDate()<b.getDate())) age--;
+  return age;
+}
+
+function openMeishiForm(id) {
+  const c = id ? MC.find(x=>x.id===id) : null;
+  const val = f => c?esc(c[f]||''):'';
+  const sec = title => `<div style="grid-column:1/-1;font-size:.72rem;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.5px;padding-top:8px;border-top:1px solid var(--bdr);margin-top:4px">${title}</div>`;
+  showModal(c?'名刺編集':'名刺登録', `
+    <div class="fgrid">
+      ${sec('基本情報')}
+      <div class="fg"><label>名前 *</label><input id="mf2-name" value="${val('name')}"></div>
+      <div class="fg"><label>性別</label>
+        <select id="mf2-gender"><option value="">--</option>${['男性','女性','その他'].map(x=>`<option ${(c?.gender||'')===x?'selected':''}>${x}</option>`).join('')}</select>
+      </div>
+      <div class="fg"><label>生年月日</label><input id="mf2-birthday" type="date" value="${val('birthday')}"></div>
+      <div class="fg"><label>住んでいる場所</label><input id="mf2-residence" value="${val('residence')}"></div>
+      <div class="fg"><label>電話番号</label><input id="mf2-phone" value="${val('phone')}"></div>
+      <div class="fg"><label>メールアドレス</label><input id="mf2-email" value="${val('email')}"></div>
+      <div class="fg full"><label>その他連絡方法（LINE ID, SNS等）</label><input id="mf2-contact" value="${val('contact')}"></div>
+      ${sec('仕事情報')}
+      <div class="fg"><label>企業名</label><input id="mf2-company" value="${val('company')}"></div>
+      <div class="fg"><label>役職</label><input id="mf2-position" value="${val('position')}"></div>
+      <div class="fg"><label>職種</label><input id="mf2-jobType" value="${val('jobType')}"></div>
+      <div class="fg"><label>勤務地</label><input id="mf2-workplace" value="${val('workplace')}"></div>
+      <div class="fg full"><label>HP</label><input id="mf2-hp" placeholder="https://..." value="${val('hp')}"></div>
+      <div class="fg full"><label>経歴</label><textarea id="mf2-career">${val('career')}</textarea></div>
+      ${sec('出会い・つながり')}
+      <div class="fg"><label>あった日</label><input id="mf2-metDate" type="date" value="${val('metDate')}"></div>
+      <div class="fg"><label>出会ったきっかけ</label><input id="mf2-howMet" value="${val('howMet')}"></div>
+      <div class="fg"><label>つながりたい人</label><input id="mf2-wantToConnect" value="${val('wantToConnect')}"></div>
+      <div class="fg"><label>紹介を与えた人</label><input id="mf2-introducedTo" value="${val('introducedTo')}"></div>
+      <div class="fg"><label>紹介をもらった人</label><input id="mf2-introducedFrom" value="${val('introducedFrom')}"></div>
+      <div class="fg full"><label>紹介文</label><textarea id="mf2-introduction">${val('introduction')}</textarea></div>
+      ${sec('メモ')}
+      <div class="fg full"><label>内容</label><textarea id="mf2-content">${val('content')}</textarea></div>
+      <div class="fg full"><label>悩み</label><textarea id="mf2-problem">${val('problem')}</textarea></div>
+      <div class="fg full"><label>解決策</label><textarea id="mf2-solution">${val('solution')}</textarea></div>
+      ${sec('アポ内容')}
+      <div class="fg"><label>1回目 - 目的</label><textarea id="mf2-apo1p" style="min-height:48px">${val('apo1Purpose')}</textarea></div>
+      <div class="fg"><label>1回目 - 振り返り</label><textarea id="mf2-apo1r" style="min-height:48px">${val('apo1Review')}</textarea></div>
+      <div class="fg"><label>2回目 - 目的</label><textarea id="mf2-apo2p" style="min-height:48px">${val('apo2Purpose')}</textarea></div>
+      <div class="fg"><label>2回目 - 振り返り</label><textarea id="mf2-apo2r" style="min-height:48px">${val('apo2Review')}</textarea></div>
+      <div class="fg"><label>3回目 - 目的</label><textarea id="mf2-apo3p" style="min-height:48px">${val('apo3Purpose')}</textarea></div>
+      <div class="fg"><label>3回目 - 振り返り</label><textarea id="mf2-apo3r" style="min-height:48px">${val('apo3Review')}</textarea></div>
+      ${sec('タグ')}
+      <div class="fg full"><label>タグ（カンマ区切りまたはEnter）</label>
+        <div class="tags-input" id="mf2-tags-wrap" onclick="document.getElementById('mf2-tag-in').focus()">
+          ${(c?.tags||'').split(',').filter(t=>t.trim()).map(t=>`<span class="itag">${esc(t.trim())}<button type="button" onclick="removeTag(this)">×</button></span>`).join('')}
+          <input id="mf2-tag-in" placeholder="タグを入力してEnter..." onkeydown="addTagOnEnter(event)">
+        </div>
+      </div>
+    </div>`, [
+    { label:c?'保存':'登録', cls:'btn-p', action:()=>saveMeishiForm(id) },
+    ...(c?[{label:'削除',cls:'btn-danger',action:()=>deleteMeishi(id)}]:[])
+  ], 'large');
+}
+
+function addTagOnEnter(e) {
+  if(e.key !== 'Enter' && e.key !== ',') return;
+  e.preventDefault();
+  const inp = e.target, val = inp.value.trim().replace(/,/g,'');
+  if(!val) return;
+  const wrap = document.getElementById('mf2-tags-wrap');
+  const chip = document.createElement('span'); chip.className = 'itag';
+  chip.innerHTML = `${esc(val)}<button type="button" onclick="removeTag(this)">×</button>`;
+  wrap.insertBefore(chip, inp); inp.value = '';
+}
+
+function removeTag(btn) { btn.parentElement.remove(); }
+
+function getTagsFromWrap() {
+  const wrap = document.getElementById('mf2-tags-wrap');
+  if(!wrap) return '';
+  const chips = [...wrap.querySelectorAll('.itag')].map(el => el.childNodes[0].textContent.trim());
+  const inp = document.getElementById('mf2-tag-in');
+  if(inp?.value.trim()) chips.push(inp.value.trim());
+  return chips.filter(Boolean).join(',');
+}
+
+function saveMeishiForm(id) {
+  const name = document.getElementById('mf2-name').value.trim();
+  if(!name) return alert('名前を入力してください');
+  const data = {
+    name, gender:v('mf2-gender'), birthday:v('mf2-birthday'), residence:v('mf2-residence'),
+    phone:v('mf2-phone'), email:v('mf2-email'), contact:v('mf2-contact'),
+    company:v('mf2-company'), position:v('mf2-position'), jobType:v('mf2-jobType'),
+    workplace:v('mf2-workplace'), hp:v('mf2-hp'), career:v('mf2-career'),
+    metDate:v('mf2-metDate'), howMet:v('mf2-howMet'), wantToConnect:v('mf2-wantToConnect'),
+    introducedTo:v('mf2-introducedTo'), introducedFrom:v('mf2-introducedFrom'), introduction:v('mf2-introduction'),
+    content:v('mf2-content'), problem:v('mf2-problem'), solution:v('mf2-solution'),
+    apo1Purpose:v('mf2-apo1p'), apo1Review:v('mf2-apo1r'),
+    apo2Purpose:v('mf2-apo2p'), apo2Review:v('mf2-apo2r'),
+    apo3Purpose:v('mf2-apo3p'), apo3Review:v('mf2-apo3r'),
+    tags:getTagsFromWrap()
+  };
+  if(id) {
+    const i = MC.findIndex(x=>x.id===id);
+    if(i>=0) MC[i] = {...MC[i],...data,updatedAt:Date.now()};
+    // クライアント側にも基本情報を同期
+    const m = MC[i];
+    if(m?.clientId) {
+      const cl = D.clients.find(x=>x.id===m.clientId);
+      if(cl) { Object.assign(cl, {name,company:data.company,position:data.position,phone:data.phone,email:data.email,hp:data.hp}); save(); }
+    }
+  } else {
+    data.id = uid(); data.createdAt = Date.now(); data.updatedAt = Date.now();
+    MC.push(data);
+  }
+  saveMeishi(); closeModal(); renderMeishi();
+}
+
+function deleteMeishi(id) {
+  if(!confirm('削除しますか？')) return;
+  MC = MC.filter(x=>x.id!==id);
+  saveMeishi(); closeModal(); renderMeishi();
+}
+
+function openMeishiDetail(id) {
+  const c = MC.find(x=>x.id===id);
+  if(!c) return;
+  const col = aColor(c.name||'?');
+  const fi = (label, val, full=false) => val ? `<div style="margin-bottom:10px${full?';grid-column:1/-1':''}"><div style="font-size:.68rem;color:var(--t3);font-weight:700;text-transform:uppercase;margin-bottom:2px">${label}</div><div style="font-size:.88rem;white-space:pre-wrap">${esc(val)}</div></div>` : '';
+  const sec = title => `<div style="grid-column:1/-1;font-size:.72rem;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.5px;padding-top:10px;border-top:1px solid var(--bdr);margin-top:4px;margin-bottom:2px">${title}</div>`;
+
+  const linkedClient = D.clients.find(x => x.meishiId === id || (x.name===c.name && x.company===c.company));
+  const isLost = linkedClient?.status === 'lost';
+  const isActiveClient = linkedClient && !isLost;
+  const age = calcAge(c.birthday);
+
+  const body = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+      <div class="avatar" style="width:56px;height:56px;font-size:1.2rem;background:${col}">${(c.name||'?').slice(0,1)}</div>
+      <div style="flex:1">
+        <div style="font-size:1.1rem;font-weight:800">${esc(c.name||'')}</div>
+        <div style="font-size:.85rem;color:var(--t2)">${[c.company,c.position].filter(Boolean).map(esc).join(' / ')}</div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">
+          ${isActiveClient?`<span class="badge badge-${linkedClient.status}">${SL[linkedClient.status]}</span>`:''}
+          ${isLost?'<span class="badge badge-lost">失注</span>':''}
+          ${(c.tags||'').split(',').filter(Boolean).map(t=>`<span class="tag-chip" style="font-size:.68rem">${esc(t.trim())}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-bottom:8px">
+      ${sec('基本情報')}
+      ${fi('性別',c.gender)}${fi('生年月日',c.birthday?`${c.birthday}${age?` (${age}歳)`:''}`:'')  }
+      ${fi('住んでいる場所',c.residence)}${fi('電話番号',c.phone)}
+      ${fi('メールアドレス',c.email)}${fi('その他連絡方法',c.contact)}
+      ${sec('仕事情報')}
+      ${fi('企業名',c.company)}${fi('役職',c.position)}
+      ${fi('職種',c.jobType)}${fi('勤務地',c.workplace)}
+      ${fi('HP',c.hp,true)}${fi('経歴',c.career,true)}
+      ${(c.metDate||c.howMet||c.wantToConnect||c.introducedTo||c.introducedFrom||c.introduction)?sec('出会い・つながり'):''}
+      ${fi('あった日',c.metDate)}${fi('出会ったきっかけ',c.howMet)}
+      ${fi('つながりたい人',c.wantToConnect)}${fi('紹介を与えた人',c.introducedTo)}
+      ${fi('紹介をもらった人',c.introducedFrom)}${fi('紹介文',c.introduction,true)}
+      ${(c.content||c.problem||c.solution)?sec('メモ'):''}
+      ${fi('内容',c.content,true)}${fi('悩み',c.problem,true)}${fi('解決策',c.solution,true)}
+      ${(c.apo1Purpose||c.apo1Review||c.apo2Purpose||c.apo2Review||c.apo3Purpose||c.apo3Review)?sec('アポ内容'):''}
+      ${fi('1回目 目的',c.apo1Purpose)}${fi('1回目 振り返り',c.apo1Review)}
+      ${fi('2回目 目的',c.apo2Purpose)}${fi('2回目 振り返り',c.apo2Review)}
+      ${fi('3回目 目的',c.apo3Purpose)}${fi('3回目 振り返り',c.apo3Review)}
+    </div>
+    ${isActiveClient
+      ? `<div style="background:var(--gb);color:#059669;border-radius:var(--rads);padding:10px 14px;font-size:.83rem;font-weight:600;text-align:center;cursor:pointer" onclick="closeModal();openClientDetail('${linkedClient.id}')">✅ クライアント（${SL[linkedClient.status]}）→ 詳細を見る</div>`
+      : isLost
+        ? `<div style="background:var(--rb);color:var(--r);border-radius:var(--rads);padding:10px 14px;font-size:.83rem;font-weight:600;text-align:center">失注</div>`
+        : `<button class="btn btn-p" style="width:100%" onclick="promoteToClient('${c.id}')">👥 クライアントに昇格</button>`}`;
+
+  showModal(c.name||'名刺', body, [
+    { label:'編集', cls:'btn-out', action:()=>{ closeModal(); openMeishiForm(id); }}
+  ], 'large');
+}
+
+function promoteToClient(meishiId) {
+  const c = MC.find(x=>x.id===meishiId);
+  if(!c) return;
+  if(D.clients.some(x=>x.meishiId===meishiId||(x.name===c.name&&x.company===c.company))) return alert('すでにクライアントに登録されています');
+  const now = new Date().toISOString();
+  const newId = uid();
+  D.clients.push({ id:newId, name:c.name||'', company:c.company||'', position:c.position||'', phone:c.phone||'', email:c.email||'', hp:c.hp||'', status:'pre', meishiId, tasks:[], meetings:[], memos:[], notes:[c.content,c.problem].filter(Boolean).join('\n'), createdAt:now, updatedAt:now });
+  // 名刺側にクライアントリンクを保存
+  const mi = MC.findIndex(x=>x.id===meishiId);
+  if(mi>=0) { MC[mi].clientId = newId; MC[mi].clientStatus = 'pre'; saveMeishi(); }
+  save(); closeModal();
+  alert(`${c.name} をクライアントに昇格しました`);
+  renderMeishi();
+}
+
+// ===== OCR =====
+function openMeishiScan() {
+  const key = (localStorage.getItem(AK)||'').trim();
+  if(!key) {
+    if(confirm('名刺スキャンにはGemini APIキーが必要です。設定画面を開きますか？')) showPage('settings');
+    return;
+  }
+  showModal('名刺スキャン', `
+    <div id="ocr-zone" class="ocr-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleOcrDrop(event)">
+      <div style="font-size:2rem;margin-bottom:8px">📷</div>
+      <p style="font-weight:600;color:var(--p);margin-bottom:4px">名刺画像をドロップ</p>
+      <small style="color:var(--t3)">またはボタンで選択</small>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+        <button class="btn btn-p btn-sm" onclick="document.getElementById('ocr-file').click()">ファイル選択</button>
+        <button class="btn btn-green btn-sm" onclick="openOcrCamera()">カメラ撮影</button>
+      </div>
+    </div>
+    <input type="file" id="ocr-file" accept="image/*" class="hidden" onchange="handleOcrFile(this)">
+    <div id="ocr-prog" class="hidden"><div class="ocr-bar" style="margin-top:12px"><div class="ocr-fill" id="ocr-fill"></div></div><div id="ocr-st" style="font-size:.78rem;color:var(--t3);margin-top:4px;text-align:center">準備中...</div></div>
+    <div id="ocr-preview" class="hidden" style="margin-top:12px;text-align:center"><img id="ocr-img" style="max-width:100%;max-height:160px;border-radius:var(--rads)"></div>
+  `, [], 'large');
+}
+
+function openOcrCamera(){const i=document.createElement('input');i.type='file';i.accept='image/*';i.capture='environment';i.onchange=e=>{if(e.target.files[0])processOcr(e.target.files[0])};i.click()}
+function handleOcrFile(inp){if(inp.files[0])processOcr(inp.files[0]);inp.value='';}
+function handleOcrDrop(e){e.preventDefault();document.getElementById('ocr-zone').classList.remove('dragover');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))processOcr(f);}
+
+function compressImage(file,maxKB=900){
+  return new Promise(res=>{
+    const img=new Image();img.onload=()=>{
+      const c=document.createElement('canvas');const M=1600;let w=img.width,h=img.height;
+      if(w>M||h>M){if(w>h){h=Math.round(h*M/w);w=M}else{w=Math.round(w*M/h);h=M}}
+      c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+      let q=0.85;const tryC=()=>c.toBlob(b=>{
+        if(b.size>maxKB*1024&&q>0.3){q-=0.15;tryC()}
+        else{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(b)}
+      },'image/jpeg',q);tryC();URL.revokeObjectURL(img.src)
+    };img.src=URL.createObjectURL(file);
+  });
+}
+
+async function processOcr(file) {
+  const key = (localStorage.getItem(AK)||'').trim();
+  const prog = document.getElementById('ocr-prog');
+  const fill = document.getElementById('ocr-fill');
+  const st = document.getElementById('ocr-st');
+  const prevEl = document.getElementById('ocr-preview');
+  const imgEl = document.getElementById('ocr-img');
+  if(!prog) return;
+  imgEl.src = URL.createObjectURL(file);
+  prevEl.classList.remove('hidden');
+  prog.classList.remove('hidden');
+  fill.style.width='10%'; st.textContent='画像を圧縮中...';
+  try {
+    const b64 = await compressImage(file);
+    fill.style.width='30%'; st.textContent='Gemini で認識中...';
+    const base64Data = b64.replace(/^data:image\/\w+;base64,/,'');
+    const mimeType = (b64.match(/^data:(image\/\w+);/)||[])[1]||'image/jpeg';
+    const body = {contents:[{parts:[
+      {text:'この名刺画像から情報を読み取り、以下のJSON形式で返してください。余計な説明は不要です。JSONのみ返してください。\n{"name":"","company":"","position":"","jobType":"","phone":"","email":"","hp":"","workplace":""}'},
+      {inline_data:{mime_type:mimeType,data:base64Data}}
+    ]}],generationConfig:{temperature:0}};
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error?.message||r.status);
+    const text = j.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const match = text.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('読み取れませんでした');
+    const result = JSON.parse(match[0]);
+    fill.style.width='100%'; st.textContent='完了！フォームに反映します...';
+    setTimeout(()=>{ closeModal(); openMeishiFormWithData(result); }, 500);
+  } catch(e) {
+    fill.style.width='0%'; st.textContent='エラー: '+e.message;
+  }
+}
+
+function openMeishiFormWithData(data) {
+  showModal('名刺登録（OCR結果）', `
+    <div style="background:var(--gb);border-radius:var(--rads);padding:10px 14px;margin-bottom:14px;font-size:.82rem;color:#059669;font-weight:600">✅ 読み取り完了。内容を確認して登録してください。</div>
+    <div class="fgrid">
+      <div class="fg"><label>名前 *</label><input id="mf2-name" value="${esc(data.name||'')}"></div>
+      <div class="fg"><label>性別</label><select id="mf2-gender"><option value="">--</option><option>男性</option><option>女性</option><option>その他</option></select></div>
+      <div class="fg"><label>企業名</label><input id="mf2-company" value="${esc(data.company||'')}"></div>
+      <div class="fg"><label>役職</label><input id="mf2-position" value="${esc(data.position||'')}"></div>
+      <div class="fg"><label>職種</label><input id="mf2-jobType" value="${esc(data.jobType||'')}"></div>
+      <div class="fg"><label>電話</label><input id="mf2-phone" value="${esc(data.phone||'')}"></div>
+      <div class="fg"><label>メール</label><input id="mf2-email" value="${esc(data.email||'')}"></div>
+      <div class="fg"><label>HP</label><input id="mf2-hp" value="${esc(data.hp||'')}"></div>
+      <div class="fg"><label>あった日</label><input id="mf2-metDate" type="date" value="${today()}"></div>
+      <div class="fg"><label>きっかけ</label><input id="mf2-howMet" value=""></div>
+      <div class="fg full"><label>内容・メモ</label><textarea id="mf2-content"></textarea></div>
+      <div class="fg full"><label>悩み</label><textarea id="mf2-problem"></textarea></div>
+      <div class="fg full"><label>解決策</label><textarea id="mf2-solution"></textarea></div>
+      <div class="fg full"><label>タグ（カンマ区切り）</label><input id="mf2-tags" value=""></div>
+    </div>`, [{ label:'登録', cls:'btn-p', action:()=>saveMeishiForm(null) }], 'large');
+}
+
+// ===== SETTINGS =====
+function renderSettings() {
+  const el = document.getElementById('content');
+  el.innerHTML = `
+    <div style="max-width:600px">
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="font-weight:700;margin-bottom:12px">📅 Google カレンダー（日程提案ページ）</h3>
+        <p style="font-size:.83rem;color:var(--t2);margin-bottom:12px">
+          Google カレンダー → カレンダー名の「⋮」→「設定と共有」→「カレンダーを埋め込む」の
+          <code style="background:var(--bg);padding:1px 4px;border-radius:4px">src="..."</code> のURLをコピーして貼り付けてください。
+        </p>
+        <div class="fg"><label>埋め込みURL</label><input id="cal-url" value="${esc(D.calUrl||'')}" placeholder="https://calendar.google.com/calendar/embed?src=..."></div>
+        <button class="btn btn-p" onclick="saveCalUrl()">保存</button>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="font-weight:700;margin-bottom:16px">📷 名刺スキャン（Gemini API）</h3>
+        <p style="font-size:.83rem;color:var(--t2);margin-bottom:12px">
+          <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--p)">Google AI Studio</a> でAPIキーを取得して貼り付けてください（無料枠あり）。
+        </p>
+        <div class="fg"><label>Gemini APIキー</label><input id="ak-input" type="text" value="${esc(localStorage.getItem(AK)||'')}" placeholder="AIzaSy..."></div>
+        <button class="btn btn-p" onclick="saveApiKey()">保存</button>
+        <div id="ak-status" style="font-size:.8rem;margin-top:8px;font-weight:600"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-weight:700;margin-bottom:16px">💾 データ管理</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-out btn-sm" onclick="exportAll()">📥 エクスポート（JSON）</button>
+          <label class="btn btn-out btn-sm" style="cursor:pointer">📤 インポート<input type="file" accept=".json" class="hidden" onchange="importAll(this)"></label>
+          <button class="btn btn-danger btn-sm" onclick="resetAll()">⚠ リセット</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function saveCalUrl() {
+  D.calUrl = document.getElementById('cal-url').value.trim();
+  save();
+  alert('保存しました');
+}
+
+async function saveApiKey() {
+  const key = document.getElementById('ak-input').value.trim();
+  const st = document.getElementById('ak-status');
+  if(!key) { localStorage.removeItem(AK); st.style.color='var(--r)'; st.textContent='キーを削除しました'; return; }
+  st.style.color='var(--t3)'; st.textContent='確認中...';
+  try {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
+    if(!r.ok) { st.style.color='var(--r)'; st.textContent='無効なAPIキーです'; return; }
+    localStorage.setItem(AK, key); st.style.color='var(--g)'; st.textContent='有効です。保存しました！';
+  } catch { localStorage.setItem(AK, key); st.style.color='var(--g)'; st.textContent='保存しました'; }
+}
+
+function exportAll() {
+  const blob = new Blob([JSON.stringify({lines:D,meishi:MC},null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`lines_backup_${today()}.json`; a.click();
+}
+
+function importAll(input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!confirm('現在のデータを上書きしますか？')) return;
+      if(data.lines) { D=data.lines; save(); }
+      if(data.meishi) { MC=data.meishi; saveMeishi(); }
+      showPage(currentPage); alert('インポート完了');
+    } catch { alert('ファイルの読み込みに失敗しました'); }
+  };
+  reader.readAsText(file);
+}
+
+function resetAll() {
+  if(!confirm('全データを削除しますか？')) return;
+  D = defD(); MC = [];
+  save(); saveMeishi(); showPage('home');
+}
+
+// ===== QUICK ADD =====
+function openQuickAdd() {
+  showModal('クイック追加', `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-p" style="justify-content:flex-start;padding:14px 18px" onclick="closeModal();openClientForm()">👥 新規クライアント</button>
+      <button class="btn btn-out" style="justify-content:flex-start;padding:14px 18px" onclick="closeModal();openTaskForm()">✅ タスク追加</button>
+      <button class="btn btn-out" style="justify-content:flex-start;padding:14px 18px" onclick="closeModal();openMeishiForm()">📇 名刺登録</button>
+      <button class="btn btn-out" style="justify-content:flex-start;padding:14px 18px" onclick="closeModal();openLogInput('${today()}')">📊 今日のログ入力</button>
+    </div>`, []);
+}
+
+// ===== MODAL =====
+function showModal(title, body, actions=[], size='') {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal').style.maxWidth = size==='large'?'800px':'720px';
+  const foot = document.getElementById('modal-foot');
+  foot.innerHTML = '';
+  foot.style.display = actions.length ? '' : 'none';
+  actions.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'btn '+a.cls;
+    btn.textContent = a.label;
+    btn.onclick = a.action;
+    foot.appendChild(btn);
+  });
+  document.getElementById('overlay').classList.remove('hidden');
+}
+function closeModal() { document.getElementById('overlay').classList.add('hidden'); }
+function overlayClick(e) { if(e.target.id==='overlay') closeModal(); }
+
+// ===== GOOGLE DRIVE SYNC =====
+const GCID = '155775695368-6cj0mtohrm24gnkpb3si2ofpmnfjkl2t.apps.googleusercontent.com';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+const DRIVE_FILE = 'saleshub_data.json';
+const TOKEN_KEY = 'saleshub_gtoken', TOKEN_EXP_KEY = 'saleshub_gtoken_exp';
+let gAccessToken = null, driveFileId = null, syncBusy = false;
+
+function saveToken(token, expiresIn) {
+  gAccessToken = token;
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(TOKEN_EXP_KEY, String(Date.now() + (expiresIn - 60) * 1000));
+}
+function loadToken() {
+  const t = localStorage.getItem(TOKEN_KEY), exp = Number(localStorage.getItem(TOKEN_EXP_KEY) || 0);
+  if(t && Date.now() < exp) { gAccessToken = t; return true; }
+  gAccessToken = null; localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(TOKEN_EXP_KEY); return false;
+}
+
+function setSyncUI(label, ok) {
+  document.querySelectorAll('.sync-label').forEach(el => el.textContent = label);
+  document.querySelectorAll('.sync-btn').forEach(el => el.style.background = ok ? 'rgba(16,185,129,.15)' : '');
+}
+
+function doLogin(callback) {
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GCID, scope: DRIVE_SCOPE,
+    callback: async resp => {
+      if(resp.error) { alert('ログインエラー: ' + (resp.error_description || resp.error)); return; }
+      saveToken(resp.access_token, resp.expires_in || 3600);
+      localStorage.setItem('saleshub_sync_enabled', '1');
+      if(callback) await callback();
+    }
+  });
+  client.requestAccessToken();
+}
+
+async function doSync() {
+  setSyncUI('同期中...', false);
+  try {
+    await driveLoad();
+    await driveSaveNow();
+    setSyncUI('同期済', true);
+  } catch(e) {
+    if(e.message === '再ログインしてください') {
+      localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(TOKEN_EXP_KEY);
+      setSyncUI('同期', false);
+      doLogin(doSync);
+    } else { setSyncUI('エラー', false); console.error('Sync error:', e); }
+  }
+}
+
+async function handleSync() {
+  if(!gAccessToken && !loadToken()) { doLogin(doSync); return; }
+  await doSync();
+}
+
+async function driveApi(path, opts = {}) {
+  const r = await fetch('https://www.googleapis.com/' + path, {
+    ...opts, headers: { 'Authorization': 'Bearer ' + gAccessToken, ...(opts.headers || {}) }
+  });
+  if(r.status === 401) {
+    gAccessToken = null; localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(TOKEN_EXP_KEY);
+    setSyncUI('同期', false); throw new Error('再ログインしてください');
+  }
+  return r;
+}
+
+async function driveFindFile() {
+  const r = await driveApi('drive/v3/files?spaces=appDataFolder&q=name%3D%27' + DRIVE_FILE + '%27&fields=files(id)');
+  const j = await r.json();
+  driveFileId = (j.files && j.files[0]) ? j.files[0].id : null;
+  return driveFileId;
+}
+
+function mergeArr(local, remote) {
+  const map = new Map();
+  remote.forEach(c => map.set(c.id, c));
+  local.forEach(c => { const ex = map.get(c.id); if(!ex || (c.updatedAt||'') >= (ex.updatedAt||'')) map.set(c.id, c); });
+  return [...map.values()];
+}
+
+async function driveLoad() {
+  syncBusy = true;
+  try {
+    await driveFindFile();
+    if(!driveFileId) { syncBusy = false; return; }
+    const r = await driveApi('drive/v3/files/' + driveFileId + '?alt=media');
+    const data = await r.json();
+    let changed = false;
+    if(data.lines && (data.lines.lastUpdated || 0) > (D.lastUpdated || 0)) {
+      D = data.lines; localStorage.setItem(SK, JSON.stringify(D)); changed = true;
+    }
+    if(data.meishi && Array.isArray(data.meishi)) {
+      MC = mergeArr(MC, data.meishi); localStorage.setItem(MSK, JSON.stringify(MC)); changed = true;
+    }
+    if(data.geminiApiKey) localStorage.setItem(AK, data.geminiApiKey);
+    if(changed) { updateBadge(); showPage(currentPage); }
+  } catch(e) { console.error('Drive load:', e); }
+  syncBusy = false;
+}
+
+async function driveSaveNow() {
+  if(!gAccessToken) return;
+  if(!driveFileId) await driveFindFile();
+  const data = JSON.stringify({ lines: D, meishi: MC, geminiApiKey: localStorage.getItem(AK) || '' });
+  const meta = { name: DRIVE_FILE, mimeType: 'application/json', ...(!driveFileId ? { parents: ['appDataFolder'] } : {}) };
+  const boundary = '---saleshub';
+  const body = '--' + boundary + '\r\nContent-Type:application/json;charset=UTF-8\r\n\r\n' + JSON.stringify(meta)
+    + '\r\n--' + boundary + '\r\nContent-Type:application/json\r\n\r\n' + data + '\r\n--' + boundary + '--';
+  const url = driveFileId ? 'upload/drive/v3/files/' + driveFileId + '?uploadType=multipart' : 'upload/drive/v3/files?uploadType=multipart';
+  const r = await driveApi(url, { method: driveFileId ? 'PATCH' : 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + boundary }, body });
+  if(!r.ok) { const e = await r.json(); throw new Error(e.error?.message || r.status); }
+  if(!driveFileId) { const j = await r.json(); driveFileId = j.id; }
+  setSyncUI('同期済', true);
+}
+
+let saveTimer = null;
+function driveSave() {
+  if(!gAccessToken || syncBusy) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => driveSaveNow().catch(e => { setSyncUI('エラー', false); console.error('Drive save:', e); }), 1500);
+}
+
+// ===== INIT =====
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+showPage('home');
+updateBadge();
+// 前回同期済みなら自動ロード
+if(localStorage.getItem('saleshub_sync_enabled') === '1') {
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      if(loadToken()) doSync();
+      else {
+        const client = google.accounts.oauth2.initTokenClient({
+          client_id: GCID, scope: DRIVE_SCOPE,
+          callback: async resp => {
+            if(resp.error) return;
+            saveToken(resp.access_token, resp.expires_in || 3600);
+            await doSync();
+          }
+        });
+        client.requestAccessToken({ prompt: '' });
+      }
+    }, 500);
+  });
+}
+</script>
+</body>
+</html>
