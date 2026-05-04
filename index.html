@@ -220,10 +220,10 @@ button{font-family:inherit;cursor:pointer}
         設定
       </button>
     </nav>
-    <div class="sidebar-footer">
-      <button class="sync-btn" onclick="handleSync()">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
-        <span class="sync-label">Google Drive 同期</span>
+    <div class="sidebar-footer" style="display:flex;flex-direction:column;gap:6px">
+      <button class="gh-sync-btn sync-btn" onclick="githubSaveNow()">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+        <span class="gh-sync-label">GitHub 同期</span>
       </button>
     </div>
   </aside>
@@ -280,6 +280,74 @@ button{font-family:inherit;cursor:pointer}
 // ===== DATA =====
 const SK = 'saleshub_v1', MSK = 'businessCards', AK = 'geminiApiKey';
 const IS_LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
+const GH_REPO = 'ki325ko/kanri-log-data';
+const GH_TOKEN_KEY = 'kanrilog_gh_token';
+let ghSHA = null, ghSaveTimer = null;
+
+function getGhToken() { return localStorage.getItem(GH_TOKEN_KEY) || ''; }
+
+function setGhUI(label, ok) {
+  document.querySelectorAll('.gh-sync-label').forEach(el => el.textContent = label);
+  document.querySelectorAll('.gh-sync-btn').forEach(el => el.style.background = ok ? 'rgba(16,185,129,.15)' : '');
+}
+
+async function githubLoad() {
+  const token = getGhToken(); if (!token) return;
+  setGhUI('読込中...', false);
+  try {
+    const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/data.json`, {
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!r.ok) { setGhUI('エラー', false); return; }
+    const j = await r.json();
+    ghSHA = j.sha;
+    const data = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));
+    let changed = false;
+    if (data.lines && (data.lines.lastUpdated||0) > (D.lastUpdated||0)) {
+      D = data.lines; localStorage.setItem(SK, JSON.stringify(D)); changed = true;
+    }
+    if (data.meishi && Array.isArray(data.meishi)) {
+      MC = mergeArr(MC, data.meishi); localStorage.setItem(MSK, JSON.stringify(MC)); changed = true;
+    }
+    if (changed) { updateBadge(); showPage(currentPage); }
+    setGhUI('同期済', true);
+  } catch(e) { console.error('GitHub load:', e); setGhUI('エラー', false); }
+}
+
+async function githubSaveNow() {
+  const token = getGhToken(); if (!token) return;
+  try {
+    if (!ghSHA) {
+      const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/data.json`, {
+        headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+      });
+      if (r.ok) { const j = await r.json(); ghSHA = j.sha; }
+    }
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify({lines:D, meishi:MC}))));
+    const body = { message:`update ${new Date().toISOString()}`, content };
+    if (ghSHA) body.sha = ghSHA;
+    const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/data.json`, {
+      method:'PUT', headers:{ Authorization:`token ${token}`, 'Content-Type':'application/json', Accept:'application/vnd.github.v3+json' },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error((await r.json()).message || r.status);
+    ghSHA = (await r.json()).content.sha;
+    setGhUI('同期済', true);
+  } catch(e) { console.error('GitHub save:', e); setGhUI('エラー', false); }
+}
+
+function githubSave() {
+  if (!getGhToken()) return;
+  clearTimeout(ghSaveTimer);
+  ghSaveTimer = setTimeout(githubSaveNow, 2000);
+}
+
+function saveGhToken() {
+  const t = document.getElementById('gh-token-input')?.value.trim();
+  if (!t) return;
+  localStorage.setItem(GH_TOKEN_KEY, t);
+  githubLoad();
+}
 
 async function saveToLocal() {
   if (!IS_LOCAL) return;
@@ -311,9 +379,9 @@ function load() {
   try { return JSON.parse(localStorage.getItem(SK)) || defD(); } catch { return defD(); }
 }
 function defD() { return { clients: [], tasks: [], logs: [], calUrl: '', lastUpdated: Date.now() }; }
-function save() { D.lastUpdated = Date.now(); localStorage.setItem(SK, JSON.stringify(D)); updateBadge(); driveSave(); saveToLocal(); }
+function save() { D.lastUpdated = Date.now(); localStorage.setItem(SK, JSON.stringify(D)); updateBadge(); githubSave(); driveSave(); saveToLocal(); }
 function loadMeishi() { try { return JSON.parse(localStorage.getItem(MSK)) || []; } catch { return []; } }
-function saveMeishi() { localStorage.setItem(MSK, JSON.stringify(MC)); driveSave(); saveToLocal(); }
+function saveMeishi() { localStorage.setItem(MSK, JSON.stringify(MC)); githubSave(); driveSave(); saveToLocal(); }
 
 // ===== UTILS =====
 const COLORS = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6'];
@@ -1386,6 +1454,21 @@ function renderSettings() {
   el.innerHTML = `
     <div style="max-width:600px">
       <div class="card" style="margin-bottom:16px">
+        <h3 style="font-weight:700;margin-bottom:14px">🔗 GitHub同期（メイン）</h3>
+        <p style="font-size:.83rem;color:var(--t2);margin-bottom:14px">スマホ・PC間でデータをリアルタイム共有。トークンを入力して同期ボタンを押すだけ。</p>
+        <div class="fg"><label>GitHubトークン（ghp_xxxxx）</label>
+          <input id="gh-token-input" type="password" value="${esc(getGhToken())}" placeholder="ghp_...">
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="gh-sync-btn sync-btn" style="max-width:200px" onclick="saveGhToken()">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+            <span class="gh-sync-label">${getGhToken()?'今すぐ同期':'保存して同期'}</span>
+          </button>
+          ${getGhToken()?'<span style="font-size:.75rem;color:var(--g)">✓ 設定済み</span>':''}
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
         <h3 style="font-weight:700;margin-bottom:12px">☁️ Google Drive 同期</h3>
         <p style="font-size:.83rem;color:var(--t2);margin-bottom:14px">クライアント・タスク・ログなど全データをGoogle Driveに保存し、スマホとPC間で同期します。</p>
         <button class="sync-btn" style="max-width:240px" onclick="handleSync()">
@@ -1628,6 +1711,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 showPage('home');
 updateBadge();
 loadFromLocal();
+if (getGhToken()) githubLoad();
 // 前回同期済みなら自動ロード
 if(localStorage.getItem('saleshub_sync_enabled') === '1') {
   window.addEventListener('load', () => {

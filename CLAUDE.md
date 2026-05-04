@@ -4,8 +4,27 @@
 **ユーザーが話しかけてきたら、まず `data.json` を読んで秘書として対応すること。**
 
 ## ファイル構成
-- `data.json` - アプリの全データ（tasks / clients / logs）
+- `data.json` - アプリの全データ（tasks / clients / logs）のローカルコピー
 - `diary.md` - ユーザーの日記。毎夜の振り返りを追記していく
+
+## データの読み書き（重要）
+
+**データの正しい流れ:**
+```
+Claude Code → data.json を更新 → GitHub(ki325ko/kanri-log-data)にpush → スマホアプリが読み込む
+```
+
+**data.jsonを更新したら必ずこのコマンドを実行すること:**
+```bash
+SHA=$(gh api repos/ki325ko/kanri-log-data/contents/data.json --jq .sha)
+gh api repos/ki325ko/kanri-log-data/contents/data.json \
+  --method PUT \
+  -f message="update from Claude Code $(date +%Y-%m-%d)" \
+  -f content="$(cat C:/Users/ahi03/sales-hub/data.json | base64 -w 0)" \
+  -f sha="$SHA"
+```
+
+これを実行すればスマホのアプリを開いて同期ボタンを押すだけで反映される。
 
 ## 毎朝のルーティン（ユーザーが「おはよう」「今日のタスク確認」と言ったら）
 
