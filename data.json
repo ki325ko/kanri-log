@@ -1,0 +1,50 @@
+{
+  "lines": {
+    "clients": [],
+    "tasks": [
+      {
+        "id": "task001abc",
+        "title": "管理ログ データ移行（旧アプリ → 設定→エクスポートJSONをClaudeCodeに渡す）",
+        "done": false,
+        "doneAt": null,
+        "due": "2026-05-05",
+        "priority": "high",
+        "category": "",
+        "clientId": "",
+        "notes": "手順: file:///C:/Users/ahi03/sales-hub/index.html を開く → 設定 → エクスポート（JSON） → このチャットで「データ移行して」と伝える",
+        "createdAt": "2026-05-05T00:00:00.000Z",
+        "updatedAt": "2026-05-05T00:00:00.000Z"
+      },
+      {
+        "id": "task002def",
+        "title": "Google Cloud Console に https://ki325ko.github.io をOAuthオリジンに追加する",
+        "done": false,
+        "doneAt": null,
+        "due": "2026-05-05",
+        "priority": "high",
+        "category": "",
+        "clientId": "",
+        "notes": "console.cloud.google.com/apis/credentials → メイシログのOAuthクライアント → 承認済みJavaScript生成元に追加",
+        "createdAt": "2026-05-05T00:00:00.000Z",
+        "updatedAt": "2026-05-05T00:00:00.000Z"
+      },
+      {
+        "id": "task003ghi",
+        "title": "管理ログ 朝・夜の秘書ルーティンを試してみる",
+        "done": false,
+        "doneAt": null,
+        "due": "2026-05-06",
+        "priority": "med",
+        "category": "",
+        "clientId": "",
+        "notes": "start.bat でサーバー起動 → このチャットで「おはよう、タスク確認して」と話しかける",
+        "createdAt": "2026-05-05T00:00:00.000Z",
+        "updatedAt": "2026-05-05T00:00:00.000Z"
+      }
+    ],
+    "logs": [],
+    "calUrl": "",
+    "lastUpdated": 1746403200000
+  },
+  "meishi": []
+}
