@@ -302,14 +302,18 @@ async function githubLoad() {
     const j = await r.json();
     ghSHA = j.sha;
     const data = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));
-    let changed = false;
-    if (data.lines && (data.lines.lastUpdated||0) > (D.lastUpdated||0)) {
-      D = data.lines; localStorage.setItem(SK, JSON.stringify(D)); changed = true;
+    // GitHubが正のデータソース。常に適用してローカルとマージ
+    if (data.lines) {
+      if (data.lines.tasks) data.lines.tasks = mergeArr(D.tasks||[], data.lines.tasks);
+      if (data.lines.clients) data.lines.clients = mergeArr(D.clients||[], data.lines.clients);
+      D = data.lines;
+      localStorage.setItem(SK, JSON.stringify(D));
     }
     if (data.meishi && Array.isArray(data.meishi)) {
-      MC = mergeArr(MC, data.meishi); localStorage.setItem(MSK, JSON.stringify(MC)); changed = true;
+      MC = mergeArr(MC, data.meishi);
+      localStorage.setItem(MSK, JSON.stringify(MC));
     }
-    if (changed) { updateBadge(); showPage(currentPage); }
+    updateBadge(); showPage(currentPage);
     setGhUI('同期済', true);
   } catch(e) { console.error('GitHub load:', e); setGhUI('エラー', false); }
 }
