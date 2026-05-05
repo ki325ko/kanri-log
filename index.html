@@ -210,6 +210,10 @@ button{font-family:inherit;cursor:pointer}
         <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         日次ログ
       </button>
+      <button class="nav-item" onclick="showPage('diary')" id="nav-diary">
+        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        日記
+      </button>
       <div class="sep" style="margin:8px 0"></div>
       <button class="nav-item" onclick="showPage('meishi')" id="nav-meishi">
         <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01M10 12h8"/></svg>
@@ -256,6 +260,10 @@ button{font-family:inherit;cursor:pointer}
   <button class="bnav-item" id="bnav-log" onclick="showPage('log')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
     日次ログ
+  </button>
+  <button class="bnav-item" id="bnav-diary" onclick="showPage('diary')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    日記
   </button>
   <button class="bnav-item" id="bnav-meishi" onclick="showPage('meishi')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01M10 12h8"/></svg>
@@ -423,13 +431,13 @@ function showPage(p) {
   document.querySelectorAll('.bnav-item').forEach(n => n.classList.remove('active'));
   const bnav = document.getElementById('bnav-'+p);
   if(bnav) bnav.classList.add('active');
-  const titles = { home:'ホーム', clients:'クライアント', tasks:'タスク', scheduler:'日程提案', log:'日次ログ', meishi:'名刺', settings:'設定' };
+  const titles = { home:'ホーム', clients:'クライアント', tasks:'タスク', scheduler:'日程提案', log:'日次ログ', meishi:'名刺', settings:'設定', diary:'日記' };
   document.getElementById('page-title').textContent = titles[p] || p;
-  document.getElementById('topbar-actions').innerHTML = '<button class="btn btn-p btn-sm" onclick="openQuickAdd()">＋ 追加</button>';
+  document.getElementById('topbar-actions').innerHTML = p === 'diary' ? '' : '<button class="btn btn-p btn-sm" onclick="openQuickAdd()">＋ 追加</button>';
   const el = document.getElementById('content');
   el.innerHTML = '';
   el.style.padding = p === 'scheduler' ? '0' : '24px';
-  const fn = { home:renderHome, clients:renderClients, tasks:renderTasks, scheduler:renderScheduler, log:renderLog, meishi:renderMeishi, settings:renderSettings };
+  const fn = { home:renderHome, clients:renderClients, tasks:renderTasks, scheduler:renderScheduler, log:renderLog, meishi:renderMeishi, settings:renderSettings, diary:renderDiary };
   if(fn[p]) fn[p]();
 }
 
@@ -1586,6 +1594,98 @@ function showModal(title, body, actions=[], size='') {
 }
 function closeModal() { document.getElementById('overlay').classList.add('hidden'); }
 function overlayClick(e) { if(e.target.id==='overlay') closeModal(); }
+
+// ===== DIARY =====
+let ghDiarySHA = null;
+
+async function diaryFetch() {
+  const token = getGhToken(); if (!token) return null;
+  const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/diary.md`, {
+    headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+  });
+  if (r.status === 404) return { content: '', sha: null };
+  if (!r.ok) return null;
+  const j = await r.json();
+  ghDiarySHA = j.sha;
+  return { content: decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))), sha: j.sha };
+}
+
+async function diarySave(text) {
+  const token = getGhToken(); if (!token) return false;
+  const content = btoa(unescape(encodeURIComponent(text)));
+  const body = { message: `diary update ${new Date().toISOString().slice(0,10)}`, content };
+  if (ghDiarySHA) body.sha = ghDiarySHA;
+  const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/diary.md`, {
+    method:'PUT', headers:{ Authorization:`token ${token}`, 'Content-Type':'application/json', Accept:'application/vnd.github.v3+json' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) return false;
+  const j = await r.json();
+  ghDiarySHA = j.content.sha;
+  return true;
+}
+
+function mdToHtml(md) {
+  return md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^## (.+)$/gm,'<h2 style="font-size:1.05rem;font-weight:700;margin:20px 0 6px;color:var(--t1)">$1</h2>')
+    .replace(/^### (.+)$/gm,'<h3 style="font-size:.9rem;font-weight:600;margin:12px 0 4px;color:var(--t2)">$1</h3>')
+    .replace(/^- (.+)$/gm,'<div style="padding:2px 0 2px 12px;font-size:.88rem;color:var(--t1)">• $1</div>')
+    .replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--b2);margin:14px 0">')
+    .replace(/\n(?!<)/g,' ');
+}
+
+async function renderDiary() {
+  const el = document.getElementById('content');
+  el.innerHTML = `<div style="max-width:680px;margin:0 auto">
+    <div id="diary-body" style="min-height:120px;color:var(--t2);font-size:.88rem">読込中...</div>
+    <div style="margin-top:28px">
+      <h3 style="font-size:.9rem;font-weight:600;margin-bottom:8px">新しい記録を追加</h3>
+      <textarea id="diary-input" style="width:100%;min-height:120px;padding:10px;border:1px solid var(--b2);border-radius:8px;background:var(--bg);color:var(--t1);font-size:.88rem;font-family:inherit;resize:vertical;box-sizing:border-box" placeholder="今日あったこと、気づき、反省など..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn btn-p btn-sm" onclick="saveDiaryEntry()">保存</button>
+        <span id="diary-save-status" style="font-size:.8rem;color:var(--t3);align-self:center"></span>
+      </div>
+    </div>
+  </div>`;
+
+  if (!getGhToken()) {
+    document.getElementById('diary-body').innerHTML = '<p style="color:var(--r)">GitHubトークンを設定してください（設定タブ）</p>';
+    return;
+  }
+  const res = await diaryFetch();
+  if (res === null) {
+    document.getElementById('diary-body').innerHTML = '<p style="color:var(--r)">読み込みに失敗しました</p>';
+    return;
+  }
+  document.getElementById('diary-body').innerHTML = res.content ? mdToHtml(res.content) : '<p style="color:var(--t3)">まだ記録がありません</p>';
+}
+
+async function saveDiaryEntry() {
+  const input = document.getElementById('diary-input');
+  const status = document.getElementById('diary-save-status');
+  const text = input.value.trim();
+  if (!text) return;
+  status.textContent = '保存中...';
+
+  const res = await diaryFetch();
+  const existing = res ? res.content : '';
+  const d = new Date();
+  const days = ['日','月','火','水','木','金','土'];
+  const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const dayStr = days[d.getDay()];
+  const newEntry = `\n## ${dateStr}（${dayStr}）\n\n${text.split('\n').map(l => '- '+l).join('\n')}\n\n---\n`;
+  const updated = existing + newEntry;
+
+  const ok = await diarySave(updated);
+  if (ok) {
+    status.textContent = '保存しました';
+    input.value = '';
+    document.getElementById('diary-body').innerHTML = mdToHtml(updated);
+  } else {
+    status.textContent = '保存に失敗しました';
+  }
+}
 
 // ===== GOOGLE DRIVE SYNC =====
 const GCID = '155775695368-6cj0mtohrm24gnkpb3si2ofpmnfjkl2t.apps.googleusercontent.com';
