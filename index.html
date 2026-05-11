@@ -128,12 +128,15 @@ button{font-family:inherit;cursor:pointer}
 /* 名刺 */
 .meishi-card{background:var(--sur);border-radius:var(--rad);box-shadow:var(--sh);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .12s;border:1.5px solid transparent;margin-bottom:8px}
 .meishi-card:hover{border-color:var(--pl);box-shadow:var(--shl);transform:translateY(-1px)}
-.meishi-table-wrap{overflow-x:auto;border-radius:var(--rad);box-shadow:var(--sh);background:var(--sur)}
-.meishi-table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:700px}
+.meishi-table-wrap{overflow:auto;max-height:calc(100vh - 220px);border-radius:var(--rad);box-shadow:var(--sh);background:var(--sur)}
+.meishi-table{width:100%;border-collapse:collapse;font-size:.8rem}
 .meishi-table th{background:var(--pb);color:var(--p);font-weight:700;padding:8px 12px;text-align:left;white-space:nowrap;border-bottom:2px solid var(--bdr);position:sticky;top:0;z-index:1}
-.meishi-table td{padding:8px 12px;border-bottom:1px solid var(--bdr);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;color:var(--t1)}
+.meishi-table td{padding:8px 12px;border-bottom:1px solid var(--bdr);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;color:var(--t1);background:var(--sur)}
 .meishi-table tr{cursor:pointer;transition:background .1s}
 .meishi-table tr:hover td{background:var(--pb)}
+.meishi-table tr:hover .col-sticky{background:var(--pb)}
+.col-sticky{position:sticky;z-index:2;background:var(--sur)}
+.meishi-table th.col-sticky{z-index:3;background:var(--pb)}
 .tag-chip{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;background:var(--pb);color:var(--p);cursor:pointer;border:1.5px solid transparent}
 .tag-chip:hover,.tag-chip.active{background:var(--p);color:#fff}
 .tags-input{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;border:1.5px solid var(--bdr);border-radius:var(--rads);min-height:38px;align-items:center;cursor:text;background:var(--sur)}
@@ -1159,29 +1162,61 @@ function renderMeishi() {
   </div>` : '';
 
   if (meishiView === 'table') {
+    const N = 120, C = 120; // sticky col widths: 名前=120px, 会社=120px
+    const s1 = `class="col-sticky" style="left:0;min-width:${N}px"`;
+    const s2 = `class="col-sticky" style="left:${N}px;min-width:${C}px;border-right:2px solid var(--bdr)"`;
+    const cols = 32;
     const rows = list.length ? list.map(c => {
       const linkedClient = D.clients.find(x => x.meishiId === c.id || (x.name===c.name && x.company===c.company));
       const statusLabel = linkedClient ? (linkedClient.status==='lost'?'失注':(SL[linkedClient.status]||'')) : '';
+      const age = calcAge(c.birthday);
       return `<tr onclick="openMeishiDetail('${c.id}')">
-        <td><strong>${esc(c.name||'')}</strong></td>
-        <td>${esc(c.company||'')}</td>
+        <td ${s1}><strong>${esc(c.name||'')}</strong></td>
+        <td ${s2}>${esc(c.company||'')}</td>
         <td>${esc(c.position||'')}</td>
         <td>${esc(c.jobType||'')}</td>
+        <td>${esc(c.gender||'')}</td>
+        <td>${esc(c.birthday||'')}</td>
+        <td>${age!==''?age:''}</td>
+        <td>${esc(c.residence||'')}</td>
         <td>${esc(c.phone||'')}</td>
         <td>${esc(c.email||'')}</td>
+        <td>${esc(c.contact||'')}</td>
+        <td>${esc(c.workplace||'')}</td>
+        <td>${c.hp?`<a href="${esc(c.hp)}" target="_blank" onclick="event.stopPropagation()" style="color:var(--p)">${esc(c.hp)}</a>`:''}</td>
+        <td>${esc(c.career||'')}</td>
         <td>${esc(c.metDate||'')}</td>
         <td>${esc(c.howMet||'')}</td>
+        <td>${esc(c.wantToConnect||'')}</td>
+        <td>${esc(c.introducedTo||'')}</td>
+        <td>${esc(c.introducedFrom||'')}</td>
+        <td>${esc(c.introduction||'')}</td>
+        <td>${esc(c.content||'')}</td>
+        <td>${esc(c.problem||'')}</td>
+        <td>${esc(c.solution||'')}</td>
+        <td>${esc(c.apo1Purpose||'')}</td>
+        <td>${esc(c.apo1Review||'')}</td>
+        <td>${esc(c.apo2Purpose||'')}</td>
+        <td>${esc(c.apo2Review||'')}</td>
+        <td>${esc(c.apo3Purpose||'')}</td>
+        <td>${esc(c.apo3Review||'')}</td>
         <td>${(c.tags||'').split(',').filter(Boolean).map(t=>`<span class="tag-chip" style="font-size:.65rem;padding:2px 6px">${esc(t.trim())}</span>`).join(' ')}</td>
         <td>${statusLabel?`<span class="badge badge-${linkedClient?.status||''}" style="font-size:.65rem">${statusLabel}</span>`:''}</td>
       </tr>`;
-    }).join('') : `<tr><td colspan="10" style="text-align:center;color:var(--t3);padding:32px">名刺がありません</td></tr>`;
+    }).join('') : `<tr><td colspan="${cols}" style="text-align:center;color:var(--t3);padding:32px">名刺がありません</td></tr>`;
 
     el.innerHTML = statsHtml + tagsHtml + `
       <div class="meishi-table-wrap">
         <table class="meishi-table">
           <thead><tr>
-            <th>名前</th><th>会社名</th><th>役職</th><th>職種</th>
-            <th>電話番号</th><th>メール</th><th>あった日</th><th>きっかけ</th><th>タグ</th><th>ステータス</th>
+            <th ${s1}>名前</th>
+            <th ${s2}>会社名</th>
+            <th>役職</th><th>職種</th><th>性別</th><th>生年月日</th><th>年齢</th><th>居住地</th>
+            <th>電話番号</th><th>メール</th><th>その他連絡先</th><th>勤務地</th><th>HP</th><th>経歴</th>
+            <th>あった日</th><th>きっかけ</th><th>つながりたい人</th><th>紹介した人</th><th>紹介もらった人</th>
+            <th>紹介文</th><th>内容</th><th>悩み</th><th>解決策</th>
+            <th>アポ1目的</th><th>アポ1振り返り</th><th>アポ2目的</th><th>アポ2振り返り</th><th>アポ3目的</th><th>アポ3振り返り</th>
+            <th>タグ</th><th>ステータス</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
