@@ -128,6 +128,12 @@ button{font-family:inherit;cursor:pointer}
 /* 名刺 */
 .meishi-card{background:var(--sur);border-radius:var(--rad);box-shadow:var(--sh);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .12s;border:1.5px solid transparent;margin-bottom:8px}
 .meishi-card:hover{border-color:var(--pl);box-shadow:var(--shl);transform:translateY(-1px)}
+.meishi-table-wrap{overflow-x:auto;border-radius:var(--rad);box-shadow:var(--sh);background:var(--sur)}
+.meishi-table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:700px}
+.meishi-table th{background:var(--pb);color:var(--p);font-weight:700;padding:8px 12px;text-align:left;white-space:nowrap;border-bottom:2px solid var(--bdr);position:sticky;top:0;z-index:1}
+.meishi-table td{padding:8px 12px;border-bottom:1px solid var(--bdr);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;color:var(--t1)}
+.meishi-table tr{cursor:pointer;transition:background .1s}
+.meishi-table tr:hover td{background:var(--pb)}
 .tag-chip{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;background:var(--pb);color:var(--p);cursor:pointer;border:1.5px solid transparent}
 .tag-chip:hover,.tag-chip.active{background:var(--p);color:#fff}
 .tags-input{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;border:1.5px solid var(--bdr);border-radius:var(--rads);min-height:38px;align-items:center;cursor:text;background:var(--sur)}
@@ -1109,12 +1115,20 @@ function saveLog(date) {
 }
 
 // ===== MEISHI (名刺管理) =====
-let meishiSearch = '', meishiTag = '';
+let meishiSearch = '', meishiTag = '', meishiView = 'card';
 
 function renderMeishi() {
   document.getElementById('topbar-actions').innerHTML = `
-    <div style="display:flex;gap:6px;align-items:center">
-      <input type="text" placeholder="検索..." value="${esc(meishiSearch)}" oninput="meishiSearch=this.value;renderMeishi()" style="padding:7px 12px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.83rem;width:180px;background:var(--sur)">
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      <input type="text" placeholder="検索..." value="${esc(meishiSearch)}" oninput="meishiSearch=this.value;renderMeishi()" style="padding:7px 12px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.83rem;width:150px;background:var(--sur)">
+      <div style="display:flex;border:1.5px solid var(--bdr);border-radius:var(--rads);overflow:hidden">
+        <button onclick="meishiView='card';renderMeishi()" style="padding:5px 10px;border:none;background:${meishiView==='card'?'var(--p)':'var(--sur)'};color:${meishiView==='card'?'#fff':'var(--t2)'};cursor:pointer;font-size:.8rem" title="カード表示">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </button>
+        <button onclick="meishiView='table';renderMeishi()" style="padding:5px 10px;border:none;border-left:1px solid var(--bdr);background:${meishiView==='table'?'var(--p)':'var(--sur)'};color:${meishiView==='table'?'#fff':'var(--t2)'};cursor:pointer;font-size:.8rem" title="一覧表示">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
       <button class="btn btn-out btn-sm" onclick="openMeishiForm()">✏ 手動登録</button>
       <button class="btn btn-green btn-sm" onclick="openMeishiScan()">📷 スキャン</button>
     </div>`;
@@ -1132,17 +1146,51 @@ function renderMeishi() {
   const now = new Date(), ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const week = Date.now()-7*86400000;
 
-  el.innerHTML = `
+  const statsHtml = `
     <div class="grid3" style="margin-bottom:16px">
       <div class="stat-card"><div class="stat-num" style="color:var(--p)">${MC.length}</div><div class="stat-label">全登録数</div></div>
       <div class="stat-card"><div class="stat-num">${MC.filter(c=>c.metDate&&c.metDate.startsWith(ym)).length}</div><div class="stat-label">今月の出会い</div></div>
       <div class="stat-card"><div class="stat-num">${MC.filter(c=>(c.createdAt||0)>week).length}</div><div class="stat-label">直近7日</div></div>
-    </div>
-    ${allTags.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
-      <span class="tag-chip ${!meishiTag?'active':''}" onclick="meishiTag='';renderMeishi()">全て</span>
-      ${allTags.map(t=>`<span class="tag-chip ${meishiTag===t?'active':''}" onclick="meishiTag='${esc(t)}';renderMeishi()">${esc(t)}</span>`).join('')}
-    </div>` : ''}
-    ${list.length ? list.map(c=>{
+    </div>`;
+
+  const tagsHtml = allTags.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+    <span class="tag-chip ${!meishiTag?'active':''}" onclick="meishiTag='';renderMeishi()">全て</span>
+    ${allTags.map(t=>`<span class="tag-chip ${meishiTag===t?'active':''}" onclick="meishiTag='${esc(t)}';renderMeishi()">${esc(t)}</span>`).join('')}
+  </div>` : '';
+
+  if (meishiView === 'table') {
+    const rows = list.length ? list.map(c => {
+      const linkedClient = D.clients.find(x => x.meishiId === c.id || (x.name===c.name && x.company===c.company));
+      const statusLabel = linkedClient ? (linkedClient.status==='lost'?'失注':(SL[linkedClient.status]||'')) : '';
+      return `<tr onclick="openMeishiDetail('${c.id}')">
+        <td><strong>${esc(c.name||'')}</strong></td>
+        <td>${esc(c.company||'')}</td>
+        <td>${esc(c.position||'')}</td>
+        <td>${esc(c.jobType||'')}</td>
+        <td>${esc(c.phone||'')}</td>
+        <td>${esc(c.email||'')}</td>
+        <td>${esc(c.metDate||'')}</td>
+        <td>${esc(c.howMet||'')}</td>
+        <td>${(c.tags||'').split(',').filter(Boolean).map(t=>`<span class="tag-chip" style="font-size:.65rem;padding:2px 6px">${esc(t.trim())}</span>`).join(' ')}</td>
+        <td>${statusLabel?`<span class="badge badge-${linkedClient?.status||''}" style="font-size:.65rem">${statusLabel}</span>`:''}</td>
+      </tr>`;
+    }).join('') : `<tr><td colspan="10" style="text-align:center;color:var(--t3);padding:32px">名刺がありません</td></tr>`;
+
+    el.innerHTML = statsHtml + tagsHtml + `
+      <div class="meishi-table-wrap">
+        <table class="meishi-table">
+          <thead><tr>
+            <th>名前</th><th>会社名</th><th>役職</th><th>職種</th>
+            <th>電話番号</th><th>メール</th><th>あった日</th><th>きっかけ</th><th>タグ</th><th>ステータス</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = statsHtml + tagsHtml +
+    (list.length ? list.map(c=>{
       const linkedClient = D.clients.find(x => x.meishiId === c.id || (x.name===c.name && x.company===c.company));
       const isLost = linkedClient?.status === 'lost';
       const isActive = linkedClient && !isLost;
@@ -1159,7 +1207,7 @@ function renderMeishi() {
           ${c.metDate?`<span style="font-size:.72rem;color:var(--t3)">${c.metDate}</span>`:''}
           ${(c.tags||'').split(',').filter(Boolean).slice(0,2).map(t=>`<span class="tag-chip" style="font-size:.65rem;padding:2px 7px">${esc(t.trim())}</span>`).join('')}
         </div>
-      </div>`;}).join('') : `<div class="empty-state"><p>名刺がありません<br><small>右上のボタンから登録してください</small></p></div>`}`;
+      </div>`;}).join('') : `<div class="empty-state"><p>名刺がありません<br><small>右上のボタンから登録してください</small></p></div>`);
 }
 
 function getMeishiTags() {
