@@ -139,16 +139,25 @@ button{font-family:inherit;cursor:pointer}
 .meishi-table th.col-sticky{z-index:3;background:var(--pb)}
 /* 課題 */
 .iss-wrap{overflow:auto;max-height:calc(100dvh - 200px);border-radius:var(--rad);box-shadow:var(--sh);background:var(--sur);border:1px solid var(--bdr)}
-.iss-table{border-collapse:collapse;font-size:.8rem;min-width:1040px;width:100%}
+.iss-table{border-collapse:collapse;font-size:.8rem;min-width:880px;width:100%}
 .iss-table th{background:#dcfce7;color:#166534;font-weight:700;padding:8px 10px;text-align:left;white-space:nowrap;border:1px solid #bbf7d0;position:sticky;top:0;z-index:2}
 .iss-table td{padding:3px 5px;border:1px solid var(--bdr);vertical-align:middle;background:var(--sur)}
 .iss-sel{border:none;border-radius:6px;padding:5px 6px;font-size:.74rem;font-weight:700;font-family:inherit;cursor:pointer;outline:none;max-width:160px}
 .iss-input{border:none;background:transparent;font-size:.8rem;font-family:inherit;width:100%;padding:5px 4px;outline:none;color:var(--t);box-sizing:border-box}
 .iss-input:focus{background:var(--pb);border-radius:4px}
+.iss-area{border:none;background:transparent;font-size:.8rem;font-family:inherit;width:100%;padding:5px 4px;outline:none;color:var(--t);box-sizing:border-box;resize:none;overflow:hidden;line-height:1.45;white-space:pre-wrap;word-break:break-word;display:block}
+.iss-area:focus{background:var(--pb);border-radius:4px}
 .iss-title{min-width:240px}
 .iss-memo{min-width:220px}
 .iss-date{width:130px;color:var(--t2)}
 @media(max-width:768px){.iss-wrap{max-height:calc(100dvh - 240px)}}
+/* 達成グラフ */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;min-height:130px;padding:6px 2px 0}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px}
+.bar{width:60%;max-width:36px;background:linear-gradient(180deg,var(--pl),var(--p));border-radius:6px 6px 0 0;min-height:3px;transition:height .35s}
+.bar-today{background:linear-gradient(180deg,#fcd34d,var(--y))}
+.bar-val{font-size:.72rem;font-weight:700;color:var(--t2)}
+.bar-day{font-size:.68rem;color:var(--t3)}
 .tag-chip{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;background:var(--pb);color:var(--p);cursor:pointer;border:1.5px solid transparent}
 .tag-chip:hover,.tag-chip.active{background:var(--p);color:#fff}
 .tags-input{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;border:1.5px solid var(--bdr);border-radius:var(--rads);min-height:38px;align-items:center;cursor:text;background:var(--sur)}
@@ -210,10 +219,6 @@ button{font-family:inherit;cursor:pointer}
       <span class="logo-text">管理ログ</span>
     </div>
     <nav class="nav">
-      <button class="nav-item active" onclick="showPage('home')" id="nav-home">
-        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-        ホーム
-      </button>
       <button class="nav-item" onclick="showPage('clients')" id="nav-clients">
         <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         クライアント
@@ -257,10 +262,6 @@ button{font-family:inherit;cursor:pointer}
 </div>
 
 <nav class="bottom-nav" id="bottom-nav">
-  <button class="bnav-item active" id="bnav-home" onclick="showPage('home')">
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-    ホーム
-  </button>
   <button class="bnav-item" id="bnav-clients" onclick="showPage('clients')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
     クライアント
@@ -399,7 +400,7 @@ let MC = loadMeishi();
 function load() {
   try { return JSON.parse(localStorage.getItem(SK)) || defD(); } catch { return defD(); }
 }
-function defD() { return { clients: [], tasks: [], logs: [], issues: [], issueAssignees: ['菅野','原'], lastUpdated: Date.now() }; }
+function defD() { return { clients: [], tasks: [], logs: [], issues: [], lastUpdated: Date.now() }; }
 function save() { D.lastUpdated = Date.now(); localStorage.setItem(SK, JSON.stringify(D)); updateBadge(); githubSave(); driveSave(); saveToLocal(); }
 function loadMeishi() { try { return JSON.parse(localStorage.getItem(MSK)) || []; } catch { return []; } }
 function saveMeishi() { localStorage.setItem(MSK, JSON.stringify(MC)); githubSave(); driveSave(); saveToLocal(); }
@@ -431,7 +432,7 @@ function updateBadge() {
 }
 
 // ===== NAVIGATION =====
-let currentPage = 'home';
+let currentPage = 'tasks';
 function showPage(p) {
   currentPage = p;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -440,63 +441,14 @@ function showPage(p) {
   document.querySelectorAll('.bnav-item').forEach(n => n.classList.remove('active'));
   const bnav = document.getElementById('bnav-'+p);
   if(bnav) bnav.classList.add('active');
-  const titles = { home:'ホーム', clients:'クライアント', tasks:'タスク', issues:'課題', meishi:'名刺', settings:'設定' };
+  const titles = { clients:'クライアント', tasks:'タスク', issues:'課題', meishi:'名刺', settings:'設定' };
   document.getElementById('page-title').textContent = titles[p] || p;
   document.getElementById('topbar-actions').innerHTML = '<button class="btn btn-p btn-sm" onclick="openQuickAdd()">＋ 追加</button>';
   const el = document.getElementById('content');
   el.innerHTML = '';
   el.style.padding = '24px';
-  const fn = { home:renderHome, clients:renderClients, tasks:renderTasks, issues:renderIssues, meishi:renderMeishi, settings:renderSettings };
+  const fn = { clients:renderClients, tasks:renderTasks, issues:renderIssues, meishi:renderMeishi, settings:renderSettings };
   if(fn[p]) fn[p]();
-}
-
-// ===== HOME =====
-function renderHome() {
-  const el = document.getElementById('content');
-  const now = today();
-  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
-  const tomorrowStr = tomorrow.toISOString().slice(0,10);
-  const todayTasks = D.tasks.filter(t => !t.done && t.due === now);
-  const tomorrowTasks = D.tasks.filter(t => !t.done && t.due === tomorrowStr);
-  const doneTasks = D.tasks.filter(t => t.done);
-  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
-  const weekDone = D.tasks.filter(t => t.done && t.doneAt && new Date(t.doneAt) >= weekAgo);
-
-  const taskRow = t => `
-    <div class="task-item" style="cursor:default;margin-bottom:4px">
-      <div class="task-check ${t.done?'checked':''}" onclick="toggleTask('${t.id}')">✓</div>
-      <div class="task-body">
-        <div class="task-title" style="font-size:.85rem">${esc(t.title)}</div>
-        <div class="task-meta">
-          ${t.clientId?`<span>👤 ${esc(clientName(t.clientId))}</span>`:''}
-          ${t.category?`<span style="color:var(--p)">${esc(TASK_CAT[t.category]||t.category)}</span>`:''}
-          <span class="pri-${t.priority||'med'}">${PL[t.priority||'med']}</span>
-        </div>
-      </div>
-    </div>`;
-
-  el.innerHTML = `
-    <div class="grid4" style="margin-bottom:20px">
-      <div class="stat-card"><div class="stat-num" style="color:var(--p)">${doneTasks.length}</div><div class="stat-label">達成タスク累計</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--g)">${weekDone.length}</div><div class="stat-label">今週の達成</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--y)">${todayTasks.length}</div><div class="stat-label">今日のタスク</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--t2)">${tomorrowTasks.length}</div><div class="stat-label">明日のタスク</div></div>
-    </div>
-    <div class="grid2" style="margin-bottom:20px">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <h3 style="font-size:.9rem;font-weight:700">📋 今日のタスク</h3>
-          <button class="btn btn-ghost btn-xs" onclick="showPage('tasks')">すべて →</button>
-        </div>
-        ${todayTasks.length ? todayTasks.map(taskRow).join('') : '<div class="empty-state" style="padding:16px"><p>今日のタスクなし</p></div>'}
-      </div>
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <h3 style="font-size:.9rem;font-weight:700">📋 明日のタスク</h3>
-        </div>
-        ${tomorrowTasks.length ? tomorrowTasks.map(taskRow).join('') : '<div class="empty-state" style="padding:16px"><p>明日のタスクなし</p></div>'}
-      </div>
-    </div>`;
 }
 
 // ===== CLIENTS =====
@@ -814,6 +766,24 @@ function openMeetingForm(cid) {
 
 // ===== TASKS =====
 let taskFilter = 'pending';
+function dKey(d){ const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; }
+
+function taskStats() {
+  const doneDates = D.tasks.filter(t=>t.done && t.doneAt).map(t=>dKey(t.doneAt));
+  const set = new Set(doneDates);
+  const todayKey = dKey(new Date());
+  const todayDone = doneDates.filter(k=>k===todayKey).length;
+  // 連続達成日数（今日0件なら昨日から数える＝今日はまだ終わっていないため）
+  let streak=0; const cur=new Date();
+  if(!set.has(dKey(cur))) cur.setDate(cur.getDate()-1);
+  while(set.has(dKey(cur))){ streak++; cur.setDate(cur.getDate()-1); }
+  // 直近7日（古い→新しい）
+  const week=[];
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const k=dKey(d);
+    week.push({ label:DOW[d.getDay()], count:doneDates.filter(x=>x===k).length, isToday:k===todayKey }); }
+  return { streak, todayDone, week, weekTotal:week.reduce((s,d)=>s+d.count,0) };
+}
+
 function renderTasks() {
   document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-p btn-sm" onclick="openTaskForm()">＋ タスク追加</button>`;
   const el = document.getElementById('content');
@@ -824,7 +794,26 @@ function renderTasks() {
     return true;
   }).sort((a,b)=>a.done!==b.done?a.done?1:-1:(a.due||'9')>(b.due||'9')?1:-1);
 
-  el.innerHTML = `
+  const st = taskStats();
+  const maxC = Math.max(1, ...st.week.map(d=>d.count));
+  const dashboard = `
+    <div class="grid3" style="margin-bottom:16px">
+      <div class="stat-card"><div class="stat-num" style="color:var(--y)">🔥 ${st.streak}<span style="font-size:.9rem">日</span></div><div class="stat-label">連続達成日数</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--g)">${st.todayDone}</div><div class="stat-label">今日完了したタスク</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--p)">${st.weekTotal}</div><div class="stat-label">今週の完了タスク</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <h3 style="font-size:.9rem;font-weight:700;margin-bottom:8px">📊 1週間のタスク達成量</h3>
+      <div class="bar-chart">
+        ${st.week.map(d=>`<div class="bar-col">
+          <div class="bar-val">${d.count}</div>
+          <div class="bar ${d.isToday?'bar-today':''}" style="height:${Math.max(3, Math.round(d.count/maxC*100))}px"></div>
+          <div class="bar-day">${d.label}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+
+  el.innerHTML = dashboard + `
     <div class="tab-bar" style="max-width:460px">${[['pending','未完了'],['today','今日'],['done','完了済み'],['all','すべて']].map(([k,l])=>`<button class="tab-btn ${taskFilter===k?'active':''}" onclick="taskFilter='${k}';renderTasks()">${l}</button>`).join('')}</div>
     ${tasks.length ? tasks.map(t=>`
       <div class="task-item ${t.done?'done':''}" onclick="openTaskForm('${t.id}')">
@@ -842,7 +831,6 @@ function renderTasks() {
 }
 
 function toggleTaskList(id){const t=D.tasks.find(x=>x.id===id);if(t){t.done=!t.done;if(t.done)t.doneAt=new Date().toISOString();else delete t.doneAt;save();renderTasks();}}
-function toggleTask(id){const t=D.tasks.find(x=>x.id===id);if(t){t.done=!t.done;if(t.done)t.doneAt=new Date().toISOString();else delete t.doneAt;save();renderHome();}}
 
 function openTaskForm(id, clientId) {
   const t = id ? D.tasks.find(x=>x.id===id) : null;
@@ -883,7 +871,6 @@ function saveTask(id, defClientId) {
   }
   save(); closeModal();
   if(currentPage==='tasks') renderTasks();
-  else if(currentPage==='home') renderHome();
 }
 
 function deleteTask(id){if(!confirm('削除しますか？'))return;D.tasks=D.tasks.filter(t=>t.id!==id);save();closeModal();renderTasks();}
@@ -918,7 +905,6 @@ const ISSUE_MAPS = { priority:ISSUE_PRI, category:ISSUE_CAT, status:ISSUE_STATUS
 
 let issueFilter = 'all', issueSearch = '';
 
-function issueAssignees() { return (D.issueAssignees && D.issueAssignees.length) ? D.issueAssignees : ['菅野','原']; }
 function selStyle(c) { return c ? `background:${c.bg};color:${c.fg}` : 'background:var(--bg);color:var(--t2)'; }
 
 function colorSel(id, field, val, map) {
@@ -930,32 +916,6 @@ function colorSel(id, field, val, map) {
 function recolorSel(el, field) {
   const map = ISSUE_MAPS[field];
   el.setAttribute('style', selStyle(map ? map[el.value] : null));
-}
-
-function assigneeStyle(name) { return name ? `background:${aColor(name)};color:#fff` : 'background:var(--bg);color:var(--t2)'; }
-function assigneeSel(id, field, val) {
-  const opts = ['<option value=""></option>']
-    .concat(issueAssignees().map(a=>`<option value="${esc(a)}" ${val===a?'selected':''}>${esc(a)}</option>`))
-    .concat(['<option value="__add__">＋ 担当者を追加</option>'])
-    .join('');
-  return `<select class="iss-sel" style="${assigneeStyle(val)}" onchange="onAssigneeChange('${id}','${field}',this)">${opts}</select>`;
-}
-function onAssigneeChange(id, field, el) {
-  if (el.value === '__add__') {
-    const name = (prompt('担当者名を入力') || '').trim();
-    if (name) {
-      D.issueAssignees = issueAssignees();
-      if (!D.issueAssignees.includes(name)) D.issueAssignees.push(name);
-      setIssue(id, field, name);
-      renderIssues();
-    } else {
-      el.value = (D.issues.find(x=>x.id===id)||{})[field] || '';
-      el.setAttribute('style', assigneeStyle(el.value));
-    }
-    return;
-  }
-  setIssue(id, field, el.value);
-  el.setAttribute('style', assigneeStyle(el.value));
 }
 
 function setIssue(id, field, value) {
@@ -970,7 +930,7 @@ function addIssue() {
   D.issues = D.issues || [];
   const no = D.issues.reduce((m,i)=>Math.max(m, i.no||0), 0) + 1;
   const now = new Date().toISOString();
-  D.issues.push({ id:uid(), no, date:today(), title:'', priority:'', category:'', assignee1:'', assignee2:'', due:'', status:'未着手', memo:'', createdAt:now, updatedAt:now });
+  D.issues.push({ id:uid(), no, date:today(), title:'', priority:'', category:'', due:'', status:'未着手', memo:'', createdAt:now, updatedAt:now });
   save(); renderIssues();
 }
 
@@ -982,7 +942,6 @@ function deleteIssue(id) {
 
 function renderIssues() {
   D.issues = D.issues || [];
-  if (!D.issueAssignees) D.issueAssignees = ['菅野','原'];
   document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-p btn-sm" onclick="addIssue()">＋ 課題追加</button>`;
   const el = document.getElementById('content');
 
@@ -1014,14 +973,12 @@ function renderIssues() {
     <tr>
       <td style="text-align:center;color:var(--t3);font-weight:700">${it.no||''}</td>
       <td><input type="date" class="iss-input iss-date" value="${esc(it.date||'')}" onchange="setIssue('${it.id}','date',this.value)"></td>
-      <td><input class="iss-input iss-title" value="${esc(it.title||'')}" placeholder="課題を入力..." onblur="setIssue('${it.id}','title',this.value)"></td>
+      <td style="vertical-align:top"><textarea class="iss-area iss-title" rows="1" placeholder="課題を入力..." oninput="autoGrow(this)" onblur="setIssue('${it.id}','title',this.value)">${esc(it.title||'')}</textarea></td>
       <td>${colorSel(it.id,'priority',it.priority,ISSUE_PRI)}</td>
       <td>${colorSel(it.id,'category',it.category,ISSUE_CAT)}</td>
-      <td>${assigneeSel(it.id,'assignee1',it.assignee1)}</td>
-      <td>${assigneeSel(it.id,'assignee2',it.assignee2)}</td>
       <td><input type="date" class="iss-input iss-date" value="${esc(it.due||'')}" onchange="setIssue('${it.id}','due',this.value)"></td>
       <td>${colorSel(it.id,'status',it.status,ISSUE_STATUS)}</td>
-      <td><input class="iss-input iss-memo" value="${esc(it.memo||'')}" placeholder="メモ..." onblur="setIssue('${it.id}','memo',this.value)"></td>
+      <td style="vertical-align:top"><textarea class="iss-area iss-memo" rows="1" placeholder="メモ..." oninput="autoGrow(this)" onblur="setIssue('${it.id}','memo',this.value)">${esc(it.memo||'')}</textarea></td>
       <td style="text-align:center"><button class="btn btn-ghost btn-xs" style="color:var(--r)" onclick="deleteIssue('${it.id}')">✕</button></td>
     </tr>`).join('');
 
@@ -1029,12 +986,15 @@ function renderIssues() {
     <div class="iss-wrap">
       <table class="iss-table">
         <thead><tr>
-          <th style="text-align:center">No</th><th>登録日</th><th>課題</th><th>優先度</th><th>カテゴリ</th><th>担当①</th><th>担当②</th><th>期限</th><th>ステータス</th><th>メモ</th><th></th>
+          <th style="text-align:center">No</th><th>登録日</th><th>課題</th><th>優先度</th><th>カテゴリ</th><th>期限</th><th>ステータス</th><th>メモ</th><th></th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+  el.querySelectorAll('.iss-area').forEach(autoGrow);
 }
+
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; }
 
 // ===== MEISHI (名刺管理) =====
 let meishiSearch = '', meishiTag = '', meishiView = 'card';
@@ -1547,7 +1507,7 @@ function importAll(input) {
 function resetAll() {
   if(!confirm('全データを削除しますか？')) return;
   D = defD(); MC = [];
-  save(); saveMeishi(); showPage('home');
+  save(); saveMeishi(); showPage('tasks');
 }
 
 // ===== QUICK ADD =====
@@ -1706,7 +1666,7 @@ function driveSave() {
 
 // ===== INIT =====
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
-showPage('home');
+showPage('tasks');
 updateBadge();
 loadFromLocal();
 if (getGhToken()) githubLoad();
