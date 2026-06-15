@@ -87,14 +87,18 @@ button{font-family:inherit;cursor:pointer}
 .client-name{font-size:.95rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .client-meta{font-size:.76rem;color:var(--t2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .client-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
-.task-item{background:var(--sur);border-radius:var(--rads);padding:12px 16px;display:flex;align-items:flex-start;gap:12px;border:1.5px solid var(--bdr);margin-bottom:6px;transition:all .12s}
+.task-item{background:var(--sur);border-radius:var(--rads);padding:10px 14px;display:flex;align-items:center;gap:10px;border:1.5px solid var(--bdr);margin-bottom:6px;transition:all .12s;cursor:pointer}
 .task-item:hover{border-color:var(--pl)}
 .task-item.done{opacity:.5}
-.task-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--bdr);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.task-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--bdr);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
 .task-check.checked{background:var(--g);border-color:var(--g);color:#fff}
 .task-body{flex:1;min-width:0}
 .task-title{font-size:.88rem;font-weight:600;line-height:1.4}
 .task-meta{font-size:.72rem;color:var(--t3);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap}
+.task-title-i{flex:1;min-width:0;font-size:.88rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-meta-i{display:flex;align-items:center;gap:8px;flex-shrink:0;font-size:.72rem;color:var(--t3);white-space:nowrap}
+.task-meta-i .t-cat{color:var(--p);font-weight:700}
+.task-meta-i .pri-high,.task-meta-i .pri-med,.task-meta-i .pri-low{font-weight:700}
 .overdue{color:var(--r)!important;font-weight:700}
 .kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:12px}
 .kanban-col{min-width:220px;max-width:240px;flex-shrink:0}
@@ -400,7 +404,7 @@ let MC = loadMeishi();
 function load() {
   try { return JSON.parse(localStorage.getItem(SK)) || defD(); } catch { return defD(); }
 }
-function defD() { return { clients: [], tasks: [], logs: [], issues: [], lastUpdated: Date.now() }; }
+function defD() { return { clients: [], tasks: [], logs: [], issues: [], routines: [], lastUpdated: Date.now() }; }
 function save() { D.lastUpdated = Date.now(); localStorage.setItem(SK, JSON.stringify(D)); updateBadge(); githubSave(); driveSave(); saveToLocal(); }
 function loadMeishi() { try { return JSON.parse(localStorage.getItem(MSK)) || []; } catch { return []; } }
 function saveMeishi() { localStorage.setItem(MSK, JSON.stringify(MC)); githubSave(); driveSave(); saveToLocal(); }
@@ -769,7 +773,9 @@ let taskFilter = 'pending';
 function dKey(d){ const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; }
 
 function taskStats() {
-  const doneDates = D.tasks.filter(t=>t.done && t.doneAt).map(t=>dKey(t.doneAt));
+  // 通常タスクの完了日 ＋ ルーティンを今日やった日も達成としてカウント
+  const doneDates = D.tasks.filter(t=>t.done && t.doneAt).map(t=>dKey(t.doneAt))
+    .concat((D.routines||[]).flatMap(r=>r.done||[]));
   const set = new Set(doneDates);
   const todayKey = dKey(new Date());
   const todayDone = doneDates.filter(k=>k===todayKey).length;
@@ -813,24 +819,75 @@ function renderTasks() {
       </div>
     </div>`;
 
-  el.innerHTML = dashboard + `
+  const todayKey = dKey(new Date());
+  const routines = D.routines || [];
+  const routineDoneCount = routines.filter(r=>(r.done||[]).includes(todayKey)).length;
+  const routinesHtml = `
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3 style="font-size:.9rem;font-weight:700">🔁 毎日のルーティン ${routines.length?`<span style="font-size:.78rem;color:var(--t3);font-weight:600">（${routineDoneCount}/${routines.length}）</span>`:''}</h3>
+        <button class="btn btn-out btn-sm" onclick="openRoutineForm()">＋ 追加</button>
+      </div>
+      ${routines.length ? routines.map(r=>{
+        const done = (r.done||[]).includes(todayKey);
+        return `<div class="task-item ${done?'done':''}" style="margin-bottom:6px" onclick="openRoutineForm('${r.id}')">
+          <div class="task-check ${done?'checked':''}" onclick="event.stopPropagation();toggleRoutine('${r.id}')">✓</div>
+          <span class="task-title-i">${esc(r.title)}</span>
+          <span class="task-meta-i"><span class="pri-${r.priority||'med'}">${PL[r.priority||'med']}</span></span>
+        </div>`;
+      }).join('') : '<div class="empty-state" style="padding:14px 8px"><p style="font-size:.83rem">毎日繰り返すタスクを登録すると、ここで毎日チェックできます</p></div>'}
+    </div>`;
+
+  el.innerHTML = dashboard + routinesHtml + `
     <div class="tab-bar" style="max-width:460px">${[['pending','未完了'],['today','今日'],['done','完了済み'],['all','すべて']].map(([k,l])=>`<button class="tab-btn ${taskFilter===k?'active':''}" onclick="taskFilter='${k}';renderTasks()">${l}</button>`).join('')}</div>
     ${tasks.length ? tasks.map(t=>`
       <div class="task-item ${t.done?'done':''}" onclick="openTaskForm('${t.id}')">
         <div class="task-check ${t.done?'checked':''}" onclick="event.stopPropagation();toggleTaskList('${t.id}')">✓</div>
-        <div class="task-body">
-          <div class="task-title">${esc(t.title)}</div>
-          <div class="task-meta">
-            ${t.category?`<span style="color:var(--p);font-weight:700">${esc(TASK_CAT[t.category]||t.category)}</span>`:''}
-            ${t.clientId?`<span>👤 ${esc(clientName(t.clientId))}</span>`:''}
-            ${t.due?`<span class="${isOverdue(t.due)&&!t.done?'overdue':''}">${isOverdue(t.due)&&!t.done?'⚠ ':''}${fmt(t.due)}</span>`:''}
-            <span class="pri-${t.priority||'med'}">${PL[t.priority||'med']}</span>
-          </div>
-        </div>
+        <span class="task-title-i">${esc(t.title)}</span>
+        <span class="task-meta-i">
+          ${t.category?`<span class="t-cat">${esc(TASK_CAT[t.category]||t.category)}</span>`:''}
+          ${t.clientId?`<span>👤${esc(clientName(t.clientId))}</span>`:''}
+          ${t.due?`<span class="${isOverdue(t.due)&&!t.done?'overdue':''}">${isOverdue(t.due)&&!t.done?'⚠':''}${fmt(t.due)}</span>`:''}
+          <span class="pri-${t.priority||'med'}">${PL[t.priority||'med']}</span>
+        </span>
       </div>`).join('') : `<div class="empty-state"><p>タスクなし</p></div>`}`;
 }
 
 function toggleTaskList(id){const t=D.tasks.find(x=>x.id===id);if(t){t.done=!t.done;if(t.done)t.doneAt=new Date().toISOString();else delete t.doneAt;save();renderTasks();}}
+
+// ===== 毎日のルーティン =====
+function toggleRoutine(id){
+  const r=(D.routines||[]).find(x=>x.id===id); if(!r) return;
+  r.done=r.done||[];
+  const k=dKey(new Date());
+  if(r.done.includes(k)) r.done=r.done.filter(d=>d!==k); else r.done.push(k);
+  save(); renderTasks();
+}
+function openRoutineForm(id){
+  const r = id ? (D.routines||[]).find(x=>x.id===id) : null;
+  showModal(r?'ルーティン編集':'ルーティン追加', `
+    <div class="fg"><label>タイトル *</label><input id="rf-title" value="${esc(r?.title||'')}" placeholder="例: 朝のアポ電 10件"></div>
+    <div class="fg"><label>優先度</label>
+      <select id="rf-pri">${[['high','🔴 高'],['med','🟡 中'],['low','🟢 低']].map(([v,l])=>`<option value="${v}" ${(r?.priority||'med')===v?'selected':''}>${l}</option>`).join('')}</select>
+    </div>
+  `, [
+    { label:r?'保存':'追加', cls:'btn-p', action:()=>saveRoutine(id) },
+    ...(r?[{label:'削除',cls:'btn-danger',action:()=>deleteRoutine(id)}]:[])
+  ]);
+}
+function saveRoutine(id){
+  const title=document.getElementById('rf-title').value.trim();
+  if(!title) return alert('タイトルを入力してください');
+  D.routines=D.routines||[];
+  if(id){ const r=D.routines.find(x=>x.id===id); Object.assign(r,{title,priority:v('rf-pri')}); }
+  else D.routines.push({ id:uid(), title, priority:v('rf-pri'), done:[], createdAt:new Date().toISOString() });
+  save(); closeModal(); renderTasks();
+}
+function deleteRoutine(id){
+  if(!confirm('このルーティンを削除しますか？')) return;
+  D.routines=(D.routines||[]).filter(x=>x.id!==id);
+  save(); closeModal(); renderTasks();
+}
 
 function openTaskForm(id, clientId) {
   const t = id ? D.tasks.find(x=>x.id===id) : null;
