@@ -162,6 +162,18 @@ button{font-family:inherit;cursor:pointer}
 .bar-today{background:linear-gradient(180deg,#fcd34d,var(--y))}
 .bar-val{font-size:.72rem;font-weight:700;color:var(--t2)}
 .bar-day{font-size:.68rem;color:var(--t3)}
+/* 今日ボード */
+.tboard{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.tcol{background:var(--bg);border-radius:var(--rad);padding:10px;min-height:140px;border:2px dashed transparent;transition:border .12s,background .12s}
+.tcol.drop{border-color:var(--p);background:var(--pb)}
+.tcol-today{background:#fffbeb;border:2px dashed #fde68a}
+.tcol-today.drop{border-color:var(--y);background:#fef3c7}
+.tcol-head{font-size:.8rem;font-weight:700;color:var(--t2);padding:2px 4px 10px;display:flex;justify-content:space-between}
+.tcol-empty{text-align:center;color:var(--t3);font-size:.78rem;padding:20px 0}
+.tcard{background:var(--sur);border-radius:var(--rads);box-shadow:var(--sh);padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;cursor:grab;border:1.5px solid transparent}
+.tcard:hover{border-color:var(--pl)}
+.tcard:active{cursor:grabbing}
+@media(max-width:768px){.tboard{grid-template-columns:1fr}}
 .tag-chip{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;background:var(--pb);color:var(--p);cursor:pointer;border:1.5px solid transparent}
 .tag-chip:hover,.tag-chip.active{background:var(--p);color:#fff}
 .tags-input{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;border:1.5px solid var(--bdr);border-radius:var(--rads);min-height:38px;align-items:center;cursor:text;background:var(--sur)}
@@ -770,6 +782,7 @@ function openMeetingForm(cid) {
 
 // ===== TASKS =====
 let taskFilter = 'pending';
+let taskView = 'list';
 function dKey(d){ const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; }
 
 function taskStats() {
@@ -838,7 +851,32 @@ function renderTasks() {
       }).join('') : '<div class="empty-state" style="padding:14px 8px"><p style="font-size:.83rem">毎日繰り返すタスクを登録すると、ここで毎日チェックできます</p></div>'}
     </div>`;
 
-  el.innerHTML = dashboard + routinesHtml + `
+  const viewToggle = `
+    <div class="tab-bar" style="max-width:260px;margin-bottom:14px">
+      <button class="tab-btn ${taskView==='list'?'active':''}" onclick="taskView='list';renderTasks()">📋 リスト</button>
+      <button class="tab-btn ${taskView==='board'?'active':''}" onclick="taskView='board';renderTasks()">📅 今日ボード</button>
+    </div>`;
+
+  let main;
+  if (taskView === 'board') {
+    const pending = D.tasks.filter(t => !t.done);
+    const sortT = arr => arr.sort((a,b)=>({high:0,med:1,low:2}[a.priority||'med']-{high:0,med:1,low:2}[b.priority||'med'])||((a.due||'9')>(b.due||'9')?1:-1));
+    const todayT = sortT(pending.filter(t => t.due === today()));
+    const backlog = sortT(pending.filter(t => t.due !== today()));
+    main = `
+      <p style="font-size:.78rem;color:var(--t3);margin-bottom:10px">カードを「今日やること」へドラッグ（スマホは <strong>→</strong> をタップ）すると今日のタスクになります。</p>
+      <div class="tboard">
+        <div class="tcol" ondragover="event.preventDefault();this.classList.add('drop')" ondragleave="this.classList.remove('drop')" ondrop="dropToday(event,false)">
+          <div class="tcol-head"><span>やること</span><span>${backlog.length}</span></div>
+          ${backlog.length ? backlog.map(t=>taskCard(t,'backlog')).join('') : '<div class="tcol-empty">なし</div>'}
+        </div>
+        <div class="tcol tcol-today" ondragover="event.preventDefault();this.classList.add('drop')" ondragleave="this.classList.remove('drop')" ondrop="dropToday(event,true)">
+          <div class="tcol-head"><span>⭐ 今日やること</span><span>${todayT.length}</span></div>
+          ${todayT.length ? todayT.map(t=>taskCard(t,'today')).join('') : '<div class="tcol-empty">ここにドラッグ</div>'}
+        </div>
+      </div>`;
+  } else {
+    main = `
     <div class="tab-bar" style="max-width:460px">${[['pending','未完了'],['today','今日'],['done','完了済み'],['all','すべて']].map(([k,l])=>`<button class="tab-btn ${taskFilter===k?'active':''}" onclick="taskFilter='${k}';renderTasks()">${l}</button>`).join('')}</div>
     ${tasks.length ? tasks.map(t=>`
       <div class="task-item ${t.done?'done':''}" onclick="openTaskForm('${t.id}')">
@@ -851,6 +889,36 @@ function renderTasks() {
           <span class="pri-${t.priority||'med'}">${PL[t.priority||'med']}</span>
         </span>
       </div>`).join('') : `<div class="empty-state"><p>タスクなし</p></div>`}`;
+  }
+
+  el.innerHTML = dashboard + routinesHtml + viewToggle + main;
+}
+
+// ===== 今日ボード（ドラッグ＆ドロップ） =====
+function taskCard(t, col) {
+  const od = isOverdue(t.due) && !t.done;
+  return `<div class="tcard" draggable="true" ondragstart="dragTask(event,'${t.id}')" ondragend="document.querySelectorAll('.tcol').forEach(c=>c.classList.remove('drop'))">
+    <div class="task-check ${t.done?'checked':''}" onclick="event.stopPropagation();toggleTaskList('${t.id}')">✓</div>
+    <span class="task-title-i" onclick="openTaskForm('${t.id}')">${esc(t.title)}</span>
+    ${t.due&&col!=='today'?`<span class="${od?'overdue':''}" style="font-size:.66rem;flex-shrink:0">${od?'⚠':''}${fmt(t.due)}</span>`:''}
+    <span class="pri-${t.priority||'med'}" style="font-size:.7rem;font-weight:700;flex-shrink:0">${PL[t.priority||'med']}</span>
+    <button class="btn btn-ghost btn-xs" style="flex-shrink:0;padding:2px 7px" title="${col==='today'?'やることに戻す':'今日に移動'}" onclick="event.stopPropagation();moveTaskToday('${t.id}',${col==='today'?'false':'true'})">${col==='today'?'←':'→'}</button>
+  </div>`;
+}
+let _dragTaskId = null;
+function dragTask(e, id) { _dragTaskId = id; e.dataTransfer.effectAllowed = 'move'; try{ e.dataTransfer.setData('text/plain', id); }catch(_){} }
+function dropToday(e, toToday) {
+  e.preventDefault();
+  const id = _dragTaskId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+  _dragTaskId = null;
+  document.querySelectorAll('.tcol').forEach(c=>c.classList.remove('drop'));
+  if (id) moveTaskToday(id, toToday);
+}
+function moveTaskToday(id, toToday) {
+  const t = D.tasks.find(x=>x.id===id); if(!t) return;
+  t.due = toToday ? today() : '';
+  t.updatedAt = new Date().toISOString();
+  save(); renderTasks();
 }
 
 function toggleTaskList(id){const t=D.tasks.find(x=>x.id===id);if(t){t.done=!t.done;if(t.done)t.doneAt=new Date().toISOString();else delete t.doneAt;save();renderTasks();}}
