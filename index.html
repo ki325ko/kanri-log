@@ -137,6 +137,18 @@ button{font-family:inherit;cursor:pointer}
 .meishi-table tr:hover .col-sticky{background:var(--pb)}
 .col-sticky{position:sticky;z-index:2;background:var(--sur)}
 .meishi-table th.col-sticky{z-index:3;background:var(--pb)}
+/* 課題 */
+.iss-wrap{overflow:auto;max-height:calc(100dvh - 200px);border-radius:var(--rad);box-shadow:var(--sh);background:var(--sur);border:1px solid var(--bdr)}
+.iss-table{border-collapse:collapse;font-size:.8rem;min-width:1040px;width:100%}
+.iss-table th{background:#dcfce7;color:#166534;font-weight:700;padding:8px 10px;text-align:left;white-space:nowrap;border:1px solid #bbf7d0;position:sticky;top:0;z-index:2}
+.iss-table td{padding:3px 5px;border:1px solid var(--bdr);vertical-align:middle;background:var(--sur)}
+.iss-sel{border:none;border-radius:6px;padding:5px 6px;font-size:.74rem;font-weight:700;font-family:inherit;cursor:pointer;outline:none;max-width:160px}
+.iss-input{border:none;background:transparent;font-size:.8rem;font-family:inherit;width:100%;padding:5px 4px;outline:none;color:var(--t);box-sizing:border-box}
+.iss-input:focus{background:var(--pb);border-radius:4px}
+.iss-title{min-width:240px}
+.iss-memo{min-width:220px}
+.iss-date{width:130px;color:var(--t2)}
+@media(max-width:768px){.iss-wrap{max-height:calc(100dvh - 240px)}}
 .tag-chip{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;background:var(--pb);color:var(--p);cursor:pointer;border:1.5px solid transparent}
 .tag-chip:hover,.tag-chip.active{background:var(--p);color:#fff}
 .tags-input{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;border:1.5px solid var(--bdr);border-radius:var(--rads);min-height:38px;align-items:center;cursor:text;background:var(--sur)}
@@ -211,17 +223,9 @@ button{font-family:inherit;cursor:pointer}
         タスク
         <span class="nav-badge hidden" id="task-badge">0</span>
       </button>
-      <button class="nav-item" onclick="showPage('scheduler')" id="nav-scheduler">
-        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        日程提案
-      </button>
-      <button class="nav-item" onclick="showPage('log')" id="nav-log">
-        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-        日次ログ
-      </button>
-      <button class="nav-item" onclick="showPage('diary')" id="nav-diary">
-        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        日記
+      <button class="nav-item" onclick="showPage('issues')" id="nav-issues">
+        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/><path d="M9 12h6M9 16h6"/></svg>
+        課題
       </button>
       <div class="sep" style="margin:8px 0"></div>
       <button class="nav-item" onclick="showPage('meishi')" id="nav-meishi">
@@ -266,13 +270,9 @@ button{font-family:inherit;cursor:pointer}
     タスク
     <span class="bnav-badge hidden" id="bnav-badge">0</span>
   </button>
-  <button class="bnav-item" id="bnav-log" onclick="showPage('log')">
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-    日次ログ
-  </button>
-  <button class="bnav-item" id="bnav-diary" onclick="showPage('diary')">
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-    日記
+  <button class="bnav-item" id="bnav-issues" onclick="showPage('issues')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/><path d="M9 12h6M9 16h6"/></svg>
+    課題
   </button>
   <button class="bnav-item" id="bnav-meishi" onclick="showPage('meishi')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01M10 12h8"/></svg>
@@ -399,7 +399,7 @@ let MC = loadMeishi();
 function load() {
   try { return JSON.parse(localStorage.getItem(SK)) || defD(); } catch { return defD(); }
 }
-function defD() { return { clients: [], tasks: [], logs: [], calUrl: '', lastUpdated: Date.now() }; }
+function defD() { return { clients: [], tasks: [], logs: [], issues: [], issueAssignees: ['菅野','原'], lastUpdated: Date.now() }; }
 function save() { D.lastUpdated = Date.now(); localStorage.setItem(SK, JSON.stringify(D)); updateBadge(); githubSave(); driveSave(); saveToLocal(); }
 function loadMeishi() { try { return JSON.parse(localStorage.getItem(MSK)) || []; } catch { return []; } }
 function saveMeishi() { localStorage.setItem(MSK, JSON.stringify(MC)); githubSave(); driveSave(); saveToLocal(); }
@@ -440,13 +440,13 @@ function showPage(p) {
   document.querySelectorAll('.bnav-item').forEach(n => n.classList.remove('active'));
   const bnav = document.getElementById('bnav-'+p);
   if(bnav) bnav.classList.add('active');
-  const titles = { home:'ホーム', clients:'クライアント', tasks:'タスク', scheduler:'日程提案', log:'日次ログ', meishi:'名刺', settings:'設定', diary:'日記' };
+  const titles = { home:'ホーム', clients:'クライアント', tasks:'タスク', issues:'課題', meishi:'名刺', settings:'設定' };
   document.getElementById('page-title').textContent = titles[p] || p;
-  document.getElementById('topbar-actions').innerHTML = p === 'diary' ? '' : '<button class="btn btn-p btn-sm" onclick="openQuickAdd()">＋ 追加</button>';
+  document.getElementById('topbar-actions').innerHTML = '<button class="btn btn-p btn-sm" onclick="openQuickAdd()">＋ 追加</button>';
   const el = document.getElementById('content');
   el.innerHTML = '';
-  el.style.padding = p === 'scheduler' ? '0' : '24px';
-  const fn = { home:renderHome, clients:renderClients, tasks:renderTasks, scheduler:renderScheduler, log:renderLog, meishi:renderMeishi, settings:renderSettings, diary:renderDiary };
+  el.style.padding = '24px';
+  const fn = { home:renderHome, clients:renderClients, tasks:renderTasks, issues:renderIssues, meishi:renderMeishi, settings:renderSettings };
   if(fn[p]) fn[p]();
 }
 
@@ -461,7 +461,6 @@ function renderHome() {
   const doneTasks = D.tasks.filter(t => t.done);
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
   const weekDone = D.tasks.filter(t => t.done && t.doneAt && new Date(t.doneAt) >= weekAgo);
-  const log = D.logs.find(l => l.date === now);
 
   const taskRow = t => `
     <div class="task-item" style="cursor:default;margin-bottom:4px">
@@ -497,21 +496,6 @@ function renderHome() {
         </div>
         ${tomorrowTasks.length ? tomorrowTasks.map(taskRow).join('') : '<div class="empty-state" style="padding:16px"><p>明日のタスクなし</p></div>'}
       </div>
-    </div>
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h3 style="font-size:.9rem;font-weight:700">📊 今日のログ（${fmtFull(now)}）</h3>
-        <button class="btn btn-p btn-sm" onclick="openLogInput('${now}')">入力 / 編集</button>
-      </div>
-      ${log ? `
-        <div class="grid4">
-          <div class="stat-card card-sm" style="box-shadow:none;background:var(--bg)"><div class="stat-num" style="font-size:1.4rem">${log.apo||0}</div><div class="stat-label">アポ数</div></div>
-          <div class="stat-card card-sm" style="box-shadow:none;background:var(--bg)"><div class="stat-num" style="font-size:1.4rem">${log.meetings||0}</div><div class="stat-label">打ち合わせ</div></div>
-          <div class="stat-card card-sm" style="box-shadow:none;background:var(--bg)"><div class="stat-num" style="font-size:1.4rem">${log.proposals||0}</div><div class="stat-label">提案</div></div>
-          <div class="stat-card card-sm" style="box-shadow:none;background:var(--bg)"><div class="stat-num" style="font-size:1.4rem;color:var(--g)">${log.won||0}</div><div class="stat-label">受注</div></div>
-        </div>
-        ${log.memo?`<div style="margin-top:12px;font-size:.85rem;color:var(--t2);white-space:pre-wrap">${esc(log.memo)}</div>`:''}`
-      : '<div class="empty-state" style="padding:20px"><p>今日のログがまだありません</p></div>'}
     </div>`;
 }
 
@@ -904,217 +888,152 @@ function saveTask(id, defClientId) {
 
 function deleteTask(id){if(!confirm('削除しますか？'))return;D.tasks=D.tasks.filter(t=>t.id!==id);save();closeModal();renderTasks();}
 
-// ===== SCHEDULER (日程提案) =====
-let sSlots = [];
-let sDur = 60;
-let _msgLines = [];
+// ===== ISSUES (課題管理) =====
+const ISSUE_PRI = {
+  '1緊急': {bg:'#fee2e2', fg:'#dc2626'},
+  '2高':   {bg:'#ffedd5', fg:'#ea580c'},
+  '3中':   {bg:'#fef9c3', fg:'#a16207'},
+  '4低':   {bg:'#dcfce7', fg:'#16a34a'},
+};
+const ISSUE_CAT = {
+  '集客・マーケティング':{bg:'#fecaca', fg:'#991b1b'},
+  '紹介・リファラル':    {bg:'#fed7aa', fg:'#9a3412'},
+  'サービス設計':        {bg:'#fef08a', fg:'#854d0e'},
+  'ブランディング設計':  {bg:'#bbf7d0', fg:'#166534'},
+  'セールス':            {bg:'#bae6fd', fg:'#075985'},
+  '組織設計':            {bg:'#cbd5e1', fg:'#334155'},
+  '業務フロー構築':      {bg:'#ddd6fe', fg:'#5b21b6'},
+  'CS・顧客管理':        {bg:'#b91c1c', fg:'#ffffff'},
+  '戦略・思考':          {bg:'#15803d', fg:'#ffffff'},
+  '採用':                {bg:'#2563eb', fg:'#ffffff'},
+};
+const ISSUE_STATUS = {
+  '未着手':    {bg:'#f1f5f9', fg:'#64748b'},
+  '今週対応中':{bg:'#fecdd3', fg:'#be123c'},
+  '対応中':    {bg:'#bfdbfe', fg:'#1d4ed8'},
+  '完了':      {bg:'#bbf7d0', fg:'#15803d'},
+  '保留':      {bg:'#e5e7eb', fg:'#6b7280'},
+};
+const ISSUE_MAPS = { priority:ISSUE_PRI, category:ISSUE_CAT, status:ISSUE_STATUS };
 
-function getWeekStart(offset) {
-  const d = new Date();
-  const dow = d.getDay() || 7;
-  d.setDate(d.getDate() - dow + 1 + (offset||0)*7);
-  d.setHours(0,0,0,0);
-  return d;
+let issueFilter = 'all', issueSearch = '';
+
+function issueAssignees() { return (D.issueAssignees && D.issueAssignees.length) ? D.issueAssignees : ['菅野','原']; }
+function selStyle(c) { return c ? `background:${c.bg};color:${c.fg}` : 'background:var(--bg);color:var(--t2)'; }
+
+function colorSel(id, field, val, map) {
+  const opts = ['<option value=""></option>']
+    .concat(Object.keys(map).map(k=>`<option value="${esc(k)}" ${val===k?'selected':''}>${esc(k)}</option>`))
+    .join('');
+  return `<select class="iss-sel" style="${selStyle(map[val])}" onchange="setIssue('${id}','${field}',this.value);recolorSel(this,'${field}')">${opts}</select>`;
+}
+function recolorSel(el, field) {
+  const map = ISSUE_MAPS[field];
+  el.setAttribute('style', selStyle(map ? map[el.value] : null));
 }
 
-function addMins(time, mins) {
-  const [h,m] = time.split(':').map(Number);
-  const t = h*60+m+mins;
-  return `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+function assigneeStyle(name) { return name ? `background:${aColor(name)};color:#fff` : 'background:var(--bg);color:var(--t2)'; }
+function assigneeSel(id, field, val) {
+  const opts = ['<option value=""></option>']
+    .concat(issueAssignees().map(a=>`<option value="${esc(a)}" ${val===a?'selected':''}>${esc(a)}</option>`))
+    .concat(['<option value="__add__">＋ 担当者を追加</option>'])
+    .join('');
+  return `<select class="iss-sel" style="${assigneeStyle(val)}" onchange="onAssigneeChange('${id}','${field}',this)">${opts}</select>`;
 }
-
-function fmtSlot(s) {
-  const d = new Date(s.date);
-  return `${d.getMonth()+1}月${d.getDate()}日（${DOW[d.getDay()]}） ${s.start}〜${s.end}`;
-}
-
-function renderScheduler() {
-  const el = document.getElementById('content');
-  const calUrl = D.calUrl || '';
-
-  el.innerHTML = `
-    <div class="sched-layout">
-      <div class="sched-cal">
-        ${calUrl
-          ? `<iframe src="${esc(calUrl)}" allowfullscreen></iframe>`
-          : `<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px;text-align:center">
-              <div style="font-size:3rem">📅</div>
-              <p style="color:var(--t2);font-size:.88rem">Googleカレンダーの埋め込みURLを<br>設定ページで登録してください</p>
-              <button class="btn btn-p btn-sm" onclick="showPage('settings')">設定を開く</button>
-            </div>`}
-      </div>
-
-      <div class="sched-right">
-        <div class="card card-sm">
-          <h3 style="font-size:.88rem;font-weight:700;margin-bottom:10px">📅 候補日時を追加</h3>
-          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px" id="s-day-row">${weekBtns()}<button class="btn btn-out btn-sm" onclick="toggleDatePicker(this)">📅 日付指定</button></div>
-          <input type="date" id="s-date" value="${today()}" style="display:none;margin-bottom:8px;width:100%;padding:8px;border:1.5px solid var(--p);border-radius:var(--rads);font-size:.88rem;font-family:inherit" onchange="onDatePickerChange(this.value)">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
-            <input type="time" id="s-start" value="10:00" style="flex:1;padding:8px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.88rem;font-family:inherit">
-            <span style="color:var(--t3);font-weight:700;flex-shrink:0">〜</span>
-            <input type="time" id="s-end" value="11:00" style="flex:1;padding:8px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.88rem;font-family:inherit">
-            <button class="btn btn-p" style="flex-shrink:0;height:38px" onclick="addSlot()">＋</button>
-          </div>
-        </div>
-
-        <div class="card card-sm">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <h3 style="font-size:.88rem;font-weight:700">候補リスト</h3>
-            ${sSlots.length ? `<button class="btn btn-danger btn-xs" onclick="sSlots=[];renderScheduler()">クリア</button>` : ''}
-          </div>
-          ${sSlots.length ? sSlots.map((s,i) => `
-            <div class="slot-item">
-              <div class="slot-text">・${fmtSlot(s)}</div>
-              <button class="btn btn-ghost btn-xs" onclick="sSlots.splice(${i},1);renderScheduler()">✕</button>
-            </div>`).join('')
-          : '<p style="color:var(--t3);font-size:.82rem;text-align:center;padding:12px 0">左のカレンダーで空きを確認して追加してください</p>'}
-        </div>
-
-        <div class="card card-sm">
-          <h3 style="font-size:.88rem;font-weight:700;margin-bottom:10px">💬 メッセージ生成</h3>
-          <div class="fg" style="margin-bottom:8px"><label>冒頭文</label><textarea id="s-prefix" rows="2" style="font-size:.82rem;min-height:52px">お世話になっております。
-打合せの日程について、以下の日程でいかがでしょうか。</textarea></div>
-          <div class="fg" style="margin-bottom:10px"><label>締め文</label><textarea id="s-suffix" rows="2" style="font-size:.82rem;min-height:52px">ご都合の良い日程をお知らせください。
-よろしくお願いいたします。</textarea></div>
-          <button class="btn btn-p" style="width:100%;margin-bottom:8px" onclick="generateMsg()">メッセージを生成</button>
-          <div id="gen-result" class="hidden">
-            <textarea class="gen-msg" id="gen-text" readonly></textarea>
-            <button class="btn btn-green" style="width:100%;margin-top:8px" onclick="copyMsg()">📋 コピー</button>
-            <div id="copy-ok" class="hidden" style="text-align:center;color:var(--g);font-size:.82rem;margin-top:6px;font-weight:700">コピーしました！</div>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  // 最初のボタン（今日）をアクティブに
-  const firstBtn = document.querySelector('.s-day-btn');
-  if (firstBtn) { firstBtn.classList.remove('btn-out'); firstBtn.classList.add('btn-p'); }
-}
-
-function weekBtns() {
-  const DOW2 = ['日','月','火','水','木','金','土'];
-  const now = new Date();
-  const btns = [];
-  // 今日〜6日先まで
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(now); d.setDate(now.getDate() + i);
-    const dow = d.getDay();
-    if (dow === 0) continue; // 日曜スキップ
-    const val = d.toISOString().slice(0,10);
-    const label = i === 0 ? '今日' : i === 1 ? '明日' : `${d.getMonth()+1}/${d.getDate()}(${DOW2[dow]})`;
-    btns.push(`<button class="btn btn-out btn-sm s-day-btn" data-val="${val}" onclick="selectDay('${val}',this)">${label}</button>`);
+function onAssigneeChange(id, field, el) {
+  if (el.value === '__add__') {
+    const name = (prompt('担当者名を入力') || '').trim();
+    if (name) {
+      D.issueAssignees = issueAssignees();
+      if (!D.issueAssignees.includes(name)) D.issueAssignees.push(name);
+      setIssue(id, field, name);
+      renderIssues();
+    } else {
+      el.value = (D.issues.find(x=>x.id===id)||{})[field] || '';
+      el.setAttribute('style', assigneeStyle(el.value));
+    }
+    return;
   }
-  return btns.join('');
+  setIssue(id, field, el.value);
+  el.setAttribute('style', assigneeStyle(el.value));
 }
 
-function selectDay(val, el) {
-  document.getElementById('s-date').value = val;
-  document.getElementById('s-date').style.display = 'none';
-  document.querySelectorAll('.s-day-btn').forEach(b => { b.classList.remove('btn-p'); b.classList.add('btn-out'); });
-  el.classList.remove('btn-out');
-  el.classList.add('btn-p');
+function setIssue(id, field, value) {
+  const it = D.issues.find(x=>x.id===id);
+  if (!it) return;
+  it[field] = value;
+  it.updatedAt = new Date().toISOString();
+  save();
 }
 
-function toggleDatePicker(btn) {
-  const input = document.getElementById('s-date');
-  const isOpen = input.style.display !== 'none';
-  if (isOpen) {
-    input.style.display = 'none';
-    btn.classList.remove('btn-p'); btn.classList.add('btn-out');
-  } else {
-    input.style.display = 'block';
-    // クイックボタンの選択を外す
-    document.querySelectorAll('.s-day-btn').forEach(b => { b.classList.remove('btn-p'); b.classList.add('btn-out'); });
-    btn.classList.remove('btn-out'); btn.classList.add('btn-p');
-    input.showPicker?.();
-  }
+function addIssue() {
+  D.issues = D.issues || [];
+  const no = D.issues.reduce((m,i)=>Math.max(m, i.no||0), 0) + 1;
+  const now = new Date().toISOString();
+  D.issues.push({ id:uid(), no, date:today(), title:'', priority:'', category:'', assignee1:'', assignee2:'', due:'', status:'未着手', memo:'', createdAt:now, updatedAt:now });
+  save(); renderIssues();
 }
 
-function onDatePickerChange(val) {
-  document.getElementById('s-date').value = val;
+function deleteIssue(id) {
+  if (!confirm('この課題を削除しますか？')) return;
+  D.issues = (D.issues||[]).filter(x=>x.id!==id);
+  save(); renderIssues();
 }
 
-function addSlot() {
-  const date = v('s-date'), start = v('s-start'), end = v('s-end');
-  if(!date) return alert('日付を選択してください');
-  if(!start || !end) return alert('開始・終了時間を入力してください');
-  if(start >= end) return alert('終了時間は開始時間より後にしてください');
-  sSlots.push({ date, start, end });
-  sSlots.sort((a,b) => (a.date+a.start) > (b.date+b.start) ? 1 : -1);
-  renderScheduler();
-}
-
-function generateMsg() {
-  if(!sSlots.length) return alert('候補日時を追加してください');
-  const prefix = v('s-prefix'), suffix = v('s-suffix');
-  const lines = sSlots.map(s => `・${fmtSlot(s)}`);
-  const msg = [prefix, '', ...lines, '', suffix].join('\n').replace(/\n{3,}/g,'\n\n').trim();
-  document.getElementById('gen-text').value = msg;
-  document.getElementById('gen-result').classList.remove('hidden');
-  document.getElementById('copy-ok').classList.add('hidden');
-}
-
-function copyMsg() {
-  navigator.clipboard.writeText(document.getElementById('gen-text').value).then(()=>{
-    document.getElementById('copy-ok').classList.remove('hidden');
-    setTimeout(()=>document.getElementById('copy-ok')?.classList.add('hidden'),2000);
-  });
-}
-
-// ===== LOG =====
-function renderLog() {
-  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-p btn-sm" onclick="openLogInput('${today()}')">＋ 今日のログ</button>`;
+function renderIssues() {
+  D.issues = D.issues || [];
+  if (!D.issueAssignees) D.issueAssignees = ['菅野','原'];
+  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-p btn-sm" onclick="addIssue()">＋ 課題追加</button>`;
   const el = document.getElementById('content');
-  const logs = [...D.logs].sort((a,b)=>b.date>a.date?1:-1);
-  const thisMonth = today().slice(0,7);
-  const monthLogs = logs.filter(l=>l.date.slice(0,7)===thisMonth);
-  const sum = k => monthLogs.reduce((s,l)=>s+(Number(l[k])||0),0);
 
-  el.innerHTML = `
-    <div class="grid4" style="margin-bottom:20px">
-      <div class="stat-card"><div class="stat-num" style="color:var(--p)">${sum('apo')}</div><div class="stat-label">今月アポ数</div></div>
-      <div class="stat-card"><div class="stat-num">${sum('meetings')}</div><div class="stat-label">今月打ち合わせ</div></div>
-      <div class="stat-card"><div class="stat-num">${sum('proposals')}</div><div class="stat-label">今月提案</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--g)">${sum('won')}</div><div class="stat-label">今月受注</div></div>
-    </div>
-    <div class="card">
-      <h3 style="font-size:.9rem;font-weight:700;margin-bottom:16px">日次ログ（直近30日）</h3>
-      <div style="overflow-x:auto">
-        <table class="log-table">
-          <thead><tr><th>日付</th><th>アポ</th><th>打合</th><th>提案</th><th>受注</th><th>売上</th><th>メモ</th><th></th></tr></thead>
-          <tbody>${logs.slice(0,30).length ? logs.slice(0,30).map(l=>`
-            <tr>
-              <td>${fmtFull(l.date)}</td><td>${l.apo||0}</td><td>${l.meetings||0}</td><td>${l.proposals||0}</td><td>${l.won||0}</td>
-              <td>${l.revenue?'¥'+Number(l.revenue).toLocaleString():'-'}</td>
-              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left">${esc(l.memo||'')}</td>
-              <td><button class="btn btn-ghost btn-xs" onclick="openLogInput('${l.date}')">編集</button></td>
-            </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--t3);padding:24px">ログなし</td></tr>'}
-          </tbody>
-        </table>
-      </div>
+  let list = D.issues.slice();
+  if (issueFilter !== 'all') list = list.filter(i => (i.status||'') === issueFilter);
+  if (issueSearch) {
+    const q = issueSearch.toLowerCase();
+    list = list.filter(i => (i.title||'').toLowerCase().includes(q) || (i.memo||'').toLowerCase().includes(q) || (i.category||'').toLowerCase().includes(q));
+  }
+  const open = D.issues.filter(i => i.status!=='完了').length;
+  const thisWeek = D.issues.filter(i => i.status==='今週対応中').length;
+
+  const filterBar = `
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <input type="text" placeholder="課題を検索..." value="${esc(issueSearch)}" oninput="issueSearch=this.value;renderIssues()" style="padding:7px 12px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.83rem;flex:1;min-width:140px;background:var(--sur)">
+      <select onchange="issueFilter=this.value;renderIssues()" style="padding:7px 10px;border:1.5px solid var(--bdr);border-radius:var(--rads);font-size:.83rem;background:var(--sur)">
+        <option value="all" ${issueFilter==='all'?'selected':''}>全ステータス</option>
+        ${Object.keys(ISSUE_STATUS).map(s=>`<option value="${esc(s)}" ${issueFilter===s?'selected':''}>${esc(s)}</option>`).join('')}
+      </select>
+      <span style="font-size:.78rem;color:var(--t2);white-space:nowrap">未完了 <strong>${open}</strong> ／ 今週 <strong style="color:var(--r)">${thisWeek}</strong></span>
     </div>`;
-}
 
-function openLogInput(date) {
-  const l = D.logs.find(x=>x.date===date)||{};
-  showModal(`ログ入力 - ${fmtFull(date)}`, `
-    <div class="fgrid">
-      <div class="fg"><label>アポ数</label><input id="lf-apo" type="number" min="0" value="${l.apo||0}"></div>
-      <div class="fg"><label>打ち合わせ数</label><input id="lf-meetings" type="number" min="0" value="${l.meetings||0}"></div>
-      <div class="fg"><label>提案数</label><input id="lf-proposals" type="number" min="0" value="${l.proposals||0}"></div>
-      <div class="fg"><label>受注数</label><input id="lf-won" type="number" min="0" value="${l.won||0}"></div>
-      <div class="fg"><label>売上（円）</label><input id="lf-revenue" type="number" min="0" value="${l.revenue||''}"></div>
-    </div>
-    <div class="fg"><label>メモ・所感</label><textarea id="lf-memo">${esc(l.memo||'')}</textarea></div>
-  `, [{label:'保存',cls:'btn-p',action:()=>saveLog(date)}]);
-}
+  if (!list.length) {
+    el.innerHTML = filterBar + `<div class="empty-state"><p>${D.issues.length?'該当する課題がありません':'課題がまだありません'}</p><button class="btn btn-p btn-sm" style="margin-top:12px" onclick="addIssue()">＋ 課題を追加</button></div>`;
+    return;
+  }
 
-function saveLog(date) {
-  const idx = D.logs.findIndex(x=>x.date===date);
-  const entry = {date,apo:num('lf-apo'),meetings:num('lf-meetings'),proposals:num('lf-proposals'),won:num('lf-won'),revenue:num('lf-revenue'),memo:v('lf-memo')};
-  if(idx>=0) D.logs[idx]=entry; else D.logs.push(entry);
-  save(); closeModal();
-  if(currentPage==='log') renderLog();
-  else if(currentPage==='home') renderHome();
+  const rows = list.map(it => `
+    <tr>
+      <td style="text-align:center;color:var(--t3);font-weight:700">${it.no||''}</td>
+      <td><input type="date" class="iss-input iss-date" value="${esc(it.date||'')}" onchange="setIssue('${it.id}','date',this.value)"></td>
+      <td><input class="iss-input iss-title" value="${esc(it.title||'')}" placeholder="課題を入力..." onblur="setIssue('${it.id}','title',this.value)"></td>
+      <td>${colorSel(it.id,'priority',it.priority,ISSUE_PRI)}</td>
+      <td>${colorSel(it.id,'category',it.category,ISSUE_CAT)}</td>
+      <td>${assigneeSel(it.id,'assignee1',it.assignee1)}</td>
+      <td>${assigneeSel(it.id,'assignee2',it.assignee2)}</td>
+      <td><input type="date" class="iss-input iss-date" value="${esc(it.due||'')}" onchange="setIssue('${it.id}','due',this.value)"></td>
+      <td>${colorSel(it.id,'status',it.status,ISSUE_STATUS)}</td>
+      <td><input class="iss-input iss-memo" value="${esc(it.memo||'')}" placeholder="メモ..." onblur="setIssue('${it.id}','memo',this.value)"></td>
+      <td style="text-align:center"><button class="btn btn-ghost btn-xs" style="color:var(--r)" onclick="deleteIssue('${it.id}')">✕</button></td>
+    </tr>`).join('');
+
+  el.innerHTML = filterBar + `
+    <div class="iss-wrap">
+      <table class="iss-table">
+        <thead><tr>
+          <th style="text-align:center">No</th><th>登録日</th><th>課題</th><th>優先度</th><th>カテゴリ</th><th>担当①</th><th>担当②</th><th>期限</th><th>ステータス</th><th>メモ</th><th></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
 // ===== MEISHI (名刺管理) =====
@@ -1573,16 +1492,6 @@ function renderSettings() {
       </div>
 
       <div class="card" style="margin-bottom:16px">
-        <h3 style="font-weight:700;margin-bottom:12px">📅 Google カレンダー（日程提案ページ）</h3>
-        <p style="font-size:.83rem;color:var(--t2);margin-bottom:12px">
-          Google カレンダー → カレンダー名の「⋮」→「設定と共有」→「カレンダーを埋め込む」の
-          <code style="background:var(--bg);padding:1px 4px;border-radius:4px">src="..."</code> のURLをコピーして貼り付けてください。
-        </p>
-        <div class="fg"><label>埋め込みURL</label><input id="cal-url" value="${esc(D.calUrl||'')}" placeholder="https://calendar.google.com/calendar/embed?src=..."></div>
-        <button class="btn btn-p" onclick="saveCalUrl()">保存</button>
-      </div>
-
-      <div class="card" style="margin-bottom:16px">
         <h3 style="font-weight:700;margin-bottom:16px">📷 名刺スキャン（Gemini API）</h3>
         <p style="font-size:.83rem;color:var(--t2);margin-bottom:12px">
           <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--p)">Google AI Studio</a> でAPIキーを取得して貼り付けてください（無料枠あり）。
@@ -1601,12 +1510,6 @@ function renderSettings() {
         </div>
       </div>
     </div>`;
-}
-
-function saveCalUrl() {
-  D.calUrl = document.getElementById('cal-url').value.trim();
-  save();
-  alert('保存しました');
 }
 
 async function saveApiKey() {
@@ -1654,7 +1557,7 @@ function openQuickAdd() {
       <button class="btn btn-p" style="justify-content:flex-start;padding:14px 18px" onclick="closeModal();openClientForm()">👥 新規クライアント</button>
       <button class="btn btn-out" style="justify-content:flex-start;padding:14px 18px" onclick="closeModal();openTaskForm()">✅ タスク追加</button>
       <button class="btn btn-out" style="justify-content:flex-start;padding:14px 18px" onclick="closeModal();openMeishiForm()">📇 名刺登録</button>
-      <button class="btn btn-out" style="justify-content:flex-start;padding:14px 18px" onclick="closeModal();openLogInput('${today()}')">📊 今日のログ入力</button>
+      <button class="btn btn-out" style="justify-content:flex-start;padding:14px 18px" onclick="closeModal();showPage('issues');addIssue()">📝 課題を追加</button>
     </div>`, []);
 }
 
@@ -1677,98 +1580,6 @@ function showModal(title, body, actions=[], size='') {
 }
 function closeModal() { document.getElementById('overlay').classList.add('hidden'); }
 function overlayClick(e) { if(e.target.id==='overlay') closeModal(); }
-
-// ===== DIARY =====
-let ghDiarySHA = null;
-
-async function diaryFetch() {
-  const token = getGhToken(); if (!token) return null;
-  const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/diary.md`, {
-    headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
-  });
-  if (r.status === 404) return { content: '', sha: null };
-  if (!r.ok) return null;
-  const j = await r.json();
-  ghDiarySHA = j.sha;
-  return { content: decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))), sha: j.sha };
-}
-
-async function diarySave(text) {
-  const token = getGhToken(); if (!token) return false;
-  const content = btoa(unescape(encodeURIComponent(text)));
-  const body = { message: `diary update ${new Date().toISOString().slice(0,10)}`, content };
-  if (ghDiarySHA) body.sha = ghDiarySHA;
-  const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/diary.md`, {
-    method:'PUT', headers:{ Authorization:`token ${token}`, 'Content-Type':'application/json', Accept:'application/vnd.github.v3+json' },
-    body: JSON.stringify(body)
-  });
-  if (!r.ok) return false;
-  const j = await r.json();
-  ghDiarySHA = j.content.sha;
-  return true;
-}
-
-function mdToHtml(md) {
-  return md
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/^## (.+)$/gm,'<h2 style="font-size:1.05rem;font-weight:700;margin:20px 0 6px;color:var(--t1)">$1</h2>')
-    .replace(/^### (.+)$/gm,'<h3 style="font-size:.9rem;font-weight:600;margin:12px 0 4px;color:var(--t2)">$1</h3>')
-    .replace(/^- (.+)$/gm,'<div style="padding:2px 0 2px 12px;font-size:.88rem;color:var(--t1)">• $1</div>')
-    .replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--b2);margin:14px 0">')
-    .replace(/\n(?!<)/g,' ');
-}
-
-async function renderDiary() {
-  const el = document.getElementById('content');
-  el.innerHTML = `<div style="max-width:680px;margin:0 auto">
-    <div id="diary-body" style="min-height:120px;color:var(--t2);font-size:.88rem">読込中...</div>
-    <div style="margin-top:28px">
-      <h3 style="font-size:.9rem;font-weight:600;margin-bottom:8px">新しい記録を追加</h3>
-      <textarea id="diary-input" style="width:100%;min-height:120px;padding:10px;border:1px solid var(--b2);border-radius:8px;background:var(--bg);color:var(--t1);font-size:.88rem;font-family:inherit;resize:vertical;box-sizing:border-box" placeholder="今日あったこと、気づき、反省など..."></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-        <button class="btn btn-p btn-sm" onclick="saveDiaryEntry()">保存</button>
-        <span id="diary-save-status" style="font-size:.8rem;color:var(--t3);align-self:center"></span>
-      </div>
-    </div>
-  </div>`;
-
-  if (!getGhToken()) {
-    document.getElementById('diary-body').innerHTML = '<p style="color:var(--r)">GitHubトークンを設定してください（設定タブ）</p>';
-    return;
-  }
-  const res = await diaryFetch();
-  if (res === null) {
-    document.getElementById('diary-body').innerHTML = '<p style="color:var(--r)">読み込みに失敗しました</p>';
-    return;
-  }
-  document.getElementById('diary-body').innerHTML = res.content ? mdToHtml(res.content) : '<p style="color:var(--t3)">まだ記録がありません</p>';
-}
-
-async function saveDiaryEntry() {
-  const input = document.getElementById('diary-input');
-  const status = document.getElementById('diary-save-status');
-  const text = input.value.trim();
-  if (!text) return;
-  status.textContent = '保存中...';
-
-  const res = await diaryFetch();
-  const existing = res ? res.content : '';
-  const d = new Date();
-  const days = ['日','月','火','水','木','金','土'];
-  const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  const dayStr = days[d.getDay()];
-  const newEntry = `\n## ${dateStr}（${dayStr}）\n\n${text.split('\n').map(l => '- '+l).join('\n')}\n\n---\n`;
-  const updated = existing + newEntry;
-
-  const ok = await diarySave(updated);
-  if (ok) {
-    status.textContent = '保存しました';
-    input.value = '';
-    document.getElementById('diary-body').innerHTML = mdToHtml(updated);
-  } else {
-    status.textContent = '保存に失敗しました';
-  }
-}
 
 // ===== GOOGLE DRIVE SYNC =====
 const GCID = '155775695368-6cj0mtohrm24gnkpb3si2ofpmnfjkl2t.apps.googleusercontent.com';
