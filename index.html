@@ -676,6 +676,7 @@ function setBall(id, side) {
     else if(cur === 'both') c.ball = 'us';
     else c.ball = 'them';
   }
+  c.updatedAt = new Date().toISOString();
   save(); renderClients();
 }
 
@@ -684,6 +685,7 @@ function saveBallNote(id) {
   const el = document.getElementById('bn-' + id);
   if(!c || !el) return;
   c.ballNote = el.value;
+  c.updatedAt = new Date().toISOString();
   save();
 }
 
@@ -853,7 +855,7 @@ function renderClientDetail(c) {
   showModal(c.company||c.name, body, [{ label:'編集', cls:'btn-out', action:()=>{ closeModal(); openClientForm(c.id); }}], 'large');
 }
 
-function toggleClientTask(cid,tid){const c=D.clients.find(x=>x.id===cid);if(!c)return;const t=(c.tasks||[]).find(x=>x.id===tid);if(t){t.done=!t.done;save();renderClientDetail(c);}}
+function toggleClientTask(cid,tid){const c=D.clients.find(x=>x.id===cid);if(!c)return;const t=(c.tasks||[]).find(x=>x.id===tid);if(t){t.done=!t.done;c.updatedAt=new Date().toISOString();save();renderClientDetail(c);}}
 function delClientTask(cid,tid){const c=D.clients.find(x=>x.id===cid);if(!c)return;c.tasks=(c.tasks||[]).filter(x=>x.id!==tid);save();renderClientDetail(c);}
 function addMemo(cid){const c=D.clients.find(x=>x.id===cid);const text=document.getElementById('new-memo').value.trim();if(!text||!c)return;(c.memos=c.memos||[]).push({id:uid(),date:today(),text});save();renderClientDetail(c);}
 function delMemo(cid,mid){const c=D.clients.find(x=>x.id===cid);if(!c)return;c.memos=(c.memos||[]).filter(m=>m.id!==mid);save();renderClientDetail(c);}
@@ -1015,7 +1017,7 @@ function moveTaskToday(id, toToday) {
   save(); renderTasks();
 }
 
-function toggleTaskList(id){const t=D.tasks.find(x=>x.id===id);if(t){t.done=!t.done;if(t.done)t.doneAt=new Date().toISOString();else delete t.doneAt;save();renderTasks();}}
+function toggleTaskList(id){const t=D.tasks.find(x=>x.id===id);if(t){t.done=!t.done;if(t.done)t.doneAt=new Date().toISOString();else delete t.doneAt;t.updatedAt=new Date().toISOString();save();renderTasks();}}
 
 // ===== 毎日のルーティン =====
 function toggleRoutine(id){
