@@ -336,11 +336,9 @@ async function githubLoad() {
     const j = await r.json();
     ghSHA = j.sha;
     const data = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));
-    // GitHubが正のデータソース。常に適用してローカルとマージ
+    // GitHubが正のデータソース。全コレクションをローカルとマージ（消えない・上書きしない）
     if (data.lines) {
-      if (data.lines.tasks) data.lines.tasks = mergeArr(D.tasks||[], data.lines.tasks);
-      if (data.lines.clients) data.lines.clients = mergeArr(D.clients||[], data.lines.clients);
-      D = data.lines;
+      D = mergeAll(D, data.lines);
       localStorage.setItem(SK, JSON.stringify(D));
     }
     if (data.meishi && Array.isArray(data.meishi)) {
@@ -354,20 +352,28 @@ async function githubLoad() {
 
 async function githubSaveNow() {
   const token = getGhToken(); if (!token) return;
+  const url = `https://api.github.com/repos/${GH_REPO}/contents/data.json`;
+  const headers = { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' };
   try {
-    if (!ghSHA) {
-      const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/data.json`, {
-        headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
-      });
-      if (r.ok) { const j = await r.json(); ghSHA = j.sha; }
-    }
+    // 1) 最新を取得して必ずマージ（他端末の変更を消さない／競合を防ぐ）
+    const g = await fetch(url, { headers });
+    if (g.ok) {
+      const j = await g.json();
+      ghSHA = j.sha;
+      try {
+        const remote = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));
+        if (remote.lines) D = mergeAll(D, remote.lines);
+        if (Array.isArray(remote.meishi)) MC = mergeArr(MC, remote.meishi);
+        localStorage.setItem(SK, JSON.stringify(D));
+        localStorage.setItem(MSK, JSON.stringify(MC));
+        updateBadge();
+      } catch(_) {}
+    } else if (g.status === 404) { ghSHA = null; }
+    // 2) マージ結果を保存
     const content = btoa(unescape(encodeURIComponent(JSON.stringify({lines:D, meishi:MC}))));
     const body = { message:`update ${new Date().toISOString()}`, content };
     if (ghSHA) body.sha = ghSHA;
-    const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/data.json`, {
-      method:'PUT', headers:{ Authorization:`token ${token}`, 'Content-Type':'application/json', Accept:'application/vnd.github.v3+json' },
-      body: JSON.stringify(body)
-    });
+    const r = await fetch(url, { method:'PUT', headers:{ ...headers, 'Content-Type':'application/json' }, body: JSON.stringify(body) });
     if (!r.ok) throw new Error((await r.json()).message || r.status);
     ghSHA = (await r.json()).content.sha;
     setGhUI('同期済', true);
@@ -417,9 +423,9 @@ function load() {
   try { return JSON.parse(localStorage.getItem(SK)) || defD(); } catch { return defD(); }
 }
 function defD() { return { clients: [], tasks: [], logs: [], issues: [], routines: [], lastUpdated: Date.now() }; }
-function save() { D.lastUpdated = Date.now(); localStorage.setItem(SK, JSON.stringify(D)); updateBadge(); githubSave(); driveSave(); saveToLocal(); }
+function save() { D.lastUpdated = Date.now(); localStorage.setItem(SK, JSON.stringify(D)); updateBadge(); githubSave(); saveToLocal(); }
 function loadMeishi() { try { return JSON.parse(localStorage.getItem(MSK)) || []; } catch { return []; } }
-function saveMeishi() { localStorage.setItem(MSK, JSON.stringify(MC)); githubSave(); driveSave(); saveToLocal(); }
+function saveMeishi() { localStorage.setItem(MSK, JSON.stringify(MC)); githubSave(); saveToLocal(); }
 
 // ===== UTILS =====
 const COLORS = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6'];
@@ -929,6 +935,7 @@ function toggleRoutine(id){
   r.done=r.done||[];
   const k=dKey(new Date());
   if(r.done.includes(k)) r.done=r.done.filter(d=>d!==k); else r.done.push(k);
+  r.updatedAt=new Date().toISOString();
   save(); renderTasks();
 }
 function openRoutineForm(id){
@@ -947,8 +954,9 @@ function saveRoutine(id){
   const title=document.getElementById('rf-title').value.trim();
   if(!title) return alert('タイトルを入力してください');
   D.routines=D.routines||[];
-  if(id){ const r=D.routines.find(x=>x.id===id); Object.assign(r,{title,priority:v('rf-pri')}); }
-  else D.routines.push({ id:uid(), title, priority:v('rf-pri'), done:[], createdAt:new Date().toISOString() });
+  const now=new Date().toISOString();
+  if(id){ const r=D.routines.find(x=>x.id===id); Object.assign(r,{title,priority:v('rf-pri'),updatedAt:now}); }
+  else D.routines.push({ id:uid(), title, priority:v('rf-pri'), done:[], createdAt:now, updatedAt:now });
   save(); closeModal(); renderTasks();
 }
 function deleteRoutine(id){
@@ -1553,8 +1561,8 @@ function renderSettings() {
   el.innerHTML = `
     <div style="max-width:600px">
       <div class="card" style="margin-bottom:16px">
-        <h3 style="font-weight:700;margin-bottom:14px">🔗 GitHub同期（メイン）</h3>
-        <p style="font-size:.83rem;color:var(--t2);margin-bottom:14px">スマホ・PC間でデータをリアルタイム共有。トークンを入力して同期ボタンを押すだけ。</p>
+        <h3 style="font-weight:700;margin-bottom:14px">🔗 GitHub同期（これだけでOK）</h3>
+        <p style="font-size:.83rem;color:var(--t2);margin-bottom:14px">タスク・クライアント・課題・ルーティン・名刺をスマホ／PCで共有します。<strong>両方の端末に同じトークン</strong>を入れれば、起動時に自動でマージ取得＆保存されます。</p>
         <div class="fg"><label>GitHubトークン（ghp_xxxxx）</label>
           <input id="gh-token-input" type="password" value="${esc(getGhToken())}" placeholder="ghp_...">
         </div>
@@ -1568,11 +1576,11 @@ function renderSettings() {
       </div>
 
       <div class="card" style="margin-bottom:16px">
-        <h3 style="font-weight:700;margin-bottom:12px">☁️ Google Drive 同期</h3>
-        <p style="font-size:.83rem;color:var(--t2);margin-bottom:14px">クライアント・タスク・ログなど全データをGoogle Driveに保存し、スマホとPC間で同期します。</p>
-        <button class="sync-btn" style="max-width:240px" onclick="handleSync()">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
-          <span class="sync-label">Google Drive 同期</span>
+        <h3 style="font-weight:700;margin-bottom:12px">☁️ Google Drive から移行（1回だけ）</h3>
+        <p style="font-size:.83rem;color:var(--t2);margin-bottom:14px">以前 Google Drive に同期していた名刺・データを取り込み、GitHub側へ保存します。<strong>移行が済めば押す必要はありません。</strong></p>
+        <button class="sync-btn" style="max-width:280px" onclick="migrateFromDrive()">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <span class="sync-label">Driveから取り込んでGitHubへ保存</span>
         </button>
       </div>
 
@@ -1722,6 +1730,22 @@ async function handleSync() {
   await doSync();
 }
 
+// Drive → 取り込み（マージ）→ GitHubへ保存。移行用の一方向。
+async function migrateFromDrive() {
+  setSyncUI('取込中...', false);
+  if(!gAccessToken && !loadToken()) { doLogin(migrateFromDrive); return; }
+  try {
+    await driveLoad();              // Driveの中身をローカルにマージ
+    save(); saveMeishi();           // GitHubへ保存（トークン設定済みなら自動push）
+    setSyncUI('取込完了', true);
+    alert('Driveのデータを取り込み、GitHubへ保存しました。以後はGitHub同期だけでOKです。');
+  } catch(e) {
+    console.error('migrate:', e);
+    setSyncUI('エラー', false);
+    alert('取り込みに失敗しました。Driveのログイン状態を確認してください。');
+  }
+}
+
 async function driveApi(path, opts = {}) {
   const r = await fetch('https://www.googleapis.com/' + path, {
     ...opts, headers: { 'Authorization': 'Bearer ' + gAccessToken, ...(opts.headers || {}) }
@@ -1747,6 +1771,37 @@ function mergeArr(local, remote) {
   return [...map.values()];
 }
 
+// ルーティンは done（実施日の配列）を結合し、メタは新しい方を採用
+function mergeRoutines(local, remote) {
+  const map = new Map();
+  [...remote, ...local].forEach(r => {
+    const ex = map.get(r.id);
+    if (!ex) { map.set(r.id, { ...r, done: [...new Set(r.done||[])] }); return; }
+    ex.done = [...new Set([...(ex.done||[]), ...(r.done||[])])];
+    if ((r.updatedAt||'') > (ex.updatedAt||'')) { ex.title = r.title; ex.priority = r.priority; ex.updatedAt = r.updatedAt; }
+  });
+  return [...map.values()];
+}
+
+// 日次ログは日付キーで結合（同日はローカル優先）
+function mergeLogs(local, remote) {
+  const map = new Map();
+  [...local, ...remote].forEach(l => { if (l && l.date && !map.has(l.date)) map.set(l.date, l); });
+  return [...map.values()];
+}
+
+// D 全体（タスク/クライアント/課題/ルーティン/ログ）をマージ。remote をベースに採用
+function mergeAll(local, remote) {
+  const R = { ...remote };
+  R.tasks    = mergeArr(local.tasks||[],    remote.tasks||[]);
+  R.clients  = mergeArr(local.clients||[],  remote.clients||[]);
+  R.issues   = mergeArr(local.issues||[],   remote.issues||[]);
+  R.routines = mergeRoutines(local.routines||[], remote.routines||[]);
+  R.logs     = mergeLogs(local.logs||[],    remote.logs||[]);
+  R.lastUpdated = Math.max(local.lastUpdated||0, remote.lastUpdated||0);
+  return R;
+}
+
 async function driveLoad() {
   syncBusy = true;
   try {
@@ -1755,8 +1810,8 @@ async function driveLoad() {
     const r = await driveApi('drive/v3/files/' + driveFileId + '?alt=media');
     const data = await r.json();
     let changed = false;
-    if(data.lines && (data.lines.lastUpdated || 0) > (D.lastUpdated || 0)) {
-      D = data.lines; localStorage.setItem(SK, JSON.stringify(D)); changed = true;
+    if(data.lines) {
+      D = mergeAll(D, data.lines); localStorage.setItem(SK, JSON.stringify(D)); changed = true;
     }
     if(data.meishi && Array.isArray(data.meishi)) {
       MC = mergeArr(MC, data.meishi); localStorage.setItem(MSK, JSON.stringify(MC)); changed = true;
@@ -1795,25 +1850,6 @@ showPage('tasks');
 updateBadge();
 loadFromLocal();
 if (getGhToken()) githubLoad();
-// 前回同期済みなら自動ロード
-if(localStorage.getItem('saleshub_sync_enabled') === '1') {
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      if(loadToken()) doSync();
-      else {
-        const client = google.accounts.oauth2.initTokenClient({
-          client_id: GCID, scope: DRIVE_SCOPE,
-          callback: async resp => {
-            if(resp.error) return;
-            saveToken(resp.access_token, resp.expires_in || 3600);
-            await doSync();
-          }
-        });
-        client.requestAccessToken({ prompt: '' });
-      }
-    }, 500);
-  });
-}
 </script>
 </body>
 </html>
