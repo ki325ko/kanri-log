@@ -346,7 +346,7 @@ async function githubLoad() {
     });
     if (!r.ok) { setGhUI('エラー', false); return; }
     const j = await r.json();
-    ghSHA = j.sha;
+    ghSHA = j.sha; _lastFileSha = j.sha;
     const data = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));
     // GitHubが正のデータソース。全コレクションをローカルとマージ（消えない・上書きしない）
     if (data.lines) {
@@ -387,7 +387,7 @@ async function githubSaveNow() {
     if (ghSHA) body.sha = ghSHA;
     const r = await fetch(url, { method:'PUT', headers:{ ...headers, 'Content-Type':'application/json' }, body: JSON.stringify(body) });
     if (!r.ok) throw new Error((await r.json()).message || r.status);
-    ghSHA = (await r.json()).content.sha;
+    ghSHA = (await r.json()).content.sha; _lastFileSha = ghSHA;
     setGhUI('同期済', true);
   } catch(e) { console.error('GitHub save:', e); setGhUI('エラー', false); }
 }
@@ -440,6 +440,29 @@ async function autoSync() {
   if (Date.now() - _lastSync < 4000) return;
   _lastSync = Date.now();
   try { await githubLoad(); } catch (e) {}
+}
+
+// 一定間隔で自動的に最新を取得（他端末の変更を勝手に反映）。
+// 変化が無ければ何もしない／入力中・モーダル表示中は画面を再描画しない。
+let _lastFileSha = null;
+async function pollSync() {
+  if (!getGhToken() || _syncing || document.hidden) return;
+  const url = `https://api.github.com/repos/${GH_REPO}/contents/data.json`;
+  try {
+    const r = await fetch(url, { headers: { Authorization: `token ${getGhToken()}`, Accept: 'application/vnd.github.v3+json' } });
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j.sha === _lastFileSha) return;           // 変化なし
+    _lastFileSha = j.sha; ghSHA = j.sha;
+    const remote = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));
+    if (remote.lines) { D = mergeAll(D, remote.lines); localStorage.setItem(SK, JSON.stringify(D)); }
+    if (Array.isArray(remote.meishi)) { MC = mergeArr(MC, remote.meishi); localStorage.setItem(MSK, JSON.stringify(MC)); }
+    updateBadge();
+    const ae = document.activeElement;
+    const typing = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+    const modalOpen = !document.getElementById('overlay').classList.contains('hidden');
+    if (!typing && !modalOpen) showPage(currentPage);
+  } catch (e) {}
 }
 
 function toggleGhTokenView(btn) {
@@ -1924,6 +1947,8 @@ if (getGhToken()) githubLoad();
 document.addEventListener('visibilitychange', () => { if (!document.hidden) autoSync(); });
 window.addEventListener('focus', autoSync);
 window.addEventListener('pageshow', autoSync);
+// 開いている間は15秒ごとに自動で最新を確認（変化があれば反映）
+setInterval(pollSync, 15000);
 </script>
 </body>
 </html>
