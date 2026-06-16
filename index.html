@@ -393,6 +393,22 @@ function saveGhToken() {
   githubLoad();
 }
 
+function toggleGhTokenView(btn) {
+  const el = document.getElementById('gh-token-input');
+  if (!el) return;
+  const show = el.type === 'password';
+  el.type = show ? 'text' : 'password';
+  btn.textContent = show ? '隠す' : '表示';
+}
+
+function copyGhToken() {
+  const t = (document.getElementById('gh-token-input')?.value || '').trim();
+  if (!t) return alert('トークンがありません');
+  navigator.clipboard.writeText(t)
+    .then(() => alert('トークンをコピーしました。もう一方の端末の同じ欄に貼り付けてください。'))
+    .catch(() => alert('コピーできませんでした。「表示」して手動でコピーしてください。'));
+}
+
 async function saveToLocal() {
   if (!IS_LOCAL) return;
   try {
@@ -1564,14 +1580,18 @@ function renderSettings() {
         <h3 style="font-weight:700;margin-bottom:14px">🔗 GitHub同期（これだけでOK）</h3>
         <p style="font-size:.83rem;color:var(--t2);margin-bottom:14px">タスク・クライアント・課題・ルーティン・名刺をスマホ／PCで共有します。<strong>両方の端末に同じトークン</strong>を入れれば、起動時に自動でマージ取得＆保存されます。</p>
         <div class="fg"><label>GitHubトークン（ghp_xxxxx）</label>
-          <input id="gh-token-input" type="password" value="${esc(getGhToken())}" placeholder="ghp_...">
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="gh-token-input" type="password" value="${esc(getGhToken())}" placeholder="ghp_..." style="flex:1">
+            <button type="button" class="btn btn-out btn-sm" onclick="toggleGhTokenView(this)">表示</button>
+            <button type="button" class="btn btn-out btn-sm" onclick="copyGhToken()">コピー</button>
+          </div>
         </div>
+        ${getGhToken()?'<p style="font-size:.78rem;color:var(--g);margin:-6px 0 12px">✓ この端末にはトークンが保存済みです。「表示」で中身を確認し、もう一方の端末に同じものを入れてください。</p>':'<p style="font-size:.78rem;color:var(--t3);margin:-6px 0 12px">この端末にはまだトークンが入っていません。</p>'}
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <button class="gh-sync-btn sync-btn" style="max-width:200px" onclick="saveGhToken()">
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
             <span class="gh-sync-label">${getGhToken()?'今すぐ同期':'保存して同期'}</span>
           </button>
-          ${getGhToken()?'<span style="font-size:.75rem;color:var(--g)">✓ 設定済み</span>':''}
         </div>
       </div>
 

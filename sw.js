@@ -1,4 +1,4 @@
-const CACHE = 'kanrilog-v8';
+const CACHE = 'kanrilog-v9';
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html'])));
   self.skipWaiting();
