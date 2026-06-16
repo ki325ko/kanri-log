@@ -224,6 +224,12 @@ button{font-family:inherit;cursor:pointer}
 .hidden{display:none!important}
 .sep{height:1px;background:var(--bdr);margin:16px 0}
 .empty-state{text-align:center;padding:48px 20px;color:var(--t3)}
+/* 同期ボタン回転 */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning{animation:spin .8s linear infinite}
+/* トースト通知 */
+.toast{position:fixed;left:50%;bottom:calc(70px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:#0f172a;color:#fff;padding:10px 18px;border-radius:24px;font-size:.83rem;font-weight:600;box-shadow:var(--shl);opacity:0;pointer-events:none;transition:all .25s;z-index:1000;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
@@ -269,8 +275,14 @@ button{font-family:inherit;cursor:pointer}
   <div class="main">
     <header class="topbar">
       <span class="topbar-title" id="page-title">ホーム</span>
-      <div class="topbar-actions" id="topbar-actions">
-        <button class="btn btn-p btn-sm" onclick="openQuickAdd()">＋ 追加</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button id="sync-refresh" class="btn btn-out btn-sm" onclick="manualSync()" title="最新に更新（同期）" style="padding:6px 10px">
+          <svg id="sync-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+          <span id="sync-text" style="font-size:.78rem">更新</span>
+        </button>
+        <div class="topbar-actions" id="topbar-actions">
+          <button class="btn btn-p btn-sm" onclick="openQuickAdd()">＋ 追加</button>
+        </div>
       </div>
     </header>
     <div class="content" id="content"></div>
@@ -391,6 +403,43 @@ function saveGhToken() {
   if (!t) return;
   localStorage.setItem(GH_TOKEN_KEY, t);
   githubLoad();
+}
+
+function toast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.className = 'toast show';
+  clearTimeout(t._h);
+  t._h = setTimeout(() => { t.className = 'toast'; }, 1900);
+}
+
+let _syncing = false, _lastSync = 0;
+// ヘッダーの「更新」ボタン：取得（マージ）→ 保存
+async function manualSync() {
+  if (!getGhToken()) { toast('設定でGitHubトークンを入れてください'); showPage('settings'); return; }
+  if (_syncing) return;
+  _syncing = true; _lastSync = Date.now();
+  const icon = document.getElementById('sync-icon');
+  const txt = document.getElementById('sync-text');
+  if (icon) icon.classList.add('spinning');
+  if (txt) txt.textContent = '同期中';
+  try {
+    await githubLoad();
+    await githubSaveNow();
+    toast('最新に更新しました');
+  } catch (e) { console.error(e); toast('同期に失敗しました'); }
+  if (icon) icon.classList.remove('spinning');
+  if (txt) txt.textContent = '更新';
+  _syncing = false;
+}
+
+// アプリを前面に戻した／フォーカス時に自動で最新取得（PWAで更新ボタンが無い対策）
+async function autoSync() {
+  if (!getGhToken() || _syncing) return;
+  if (Date.now() - _lastSync < 4000) return;
+  _lastSync = Date.now();
+  try { await githubLoad(); } catch (e) {}
 }
 
 function toggleGhTokenView(btn) {
@@ -1870,6 +1919,11 @@ showPage('tasks');
 updateBadge();
 loadFromLocal();
 if (getGhToken()) githubLoad();
+
+// PWAでホーム画面から開いた時・前面に戻った時に自動で最新取得
+document.addEventListener('visibilitychange', () => { if (!document.hidden) autoSync(); });
+window.addEventListener('focus', autoSync);
+window.addEventListener('pageshow', autoSync);
 </script>
 </body>
 </html>
