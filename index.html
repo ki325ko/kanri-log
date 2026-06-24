@@ -95,7 +95,7 @@ button{font-family:inherit;cursor:pointer}
 .task-body{flex:1;min-width:0}
 .task-title{font-size:.88rem;font-weight:600;line-height:1.4}
 .task-meta{font-size:.72rem;color:var(--t3);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap}
-.task-title-i{flex:1;min-width:0;font-size:.88rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-title-i{flex:1;min-width:0;font-size:.88rem;font-weight:600;overflow-wrap:anywhere;word-break:break-word;line-height:1.4}
 .task-meta-i{display:flex;align-items:center;gap:8px;flex-shrink:0;font-size:.72rem;color:var(--t3);white-space:nowrap}
 .task-meta-i .t-cat{color:var(--p);font-weight:700}
 .task-meta-i .pri-high,.task-meta-i .pri-med,.task-meta-i .pri-low{font-weight:700}
@@ -175,7 +175,7 @@ button{font-family:inherit;cursor:pointer}
 .tcard:active{cursor:grabbing}
 @media(max-width:768px){.tboard{grid-template-columns:1fr}}
 /* グループ */
-.group-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.group-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
 @media(max-width:768px){.group-grid{grid-template-columns:1fr}}
 .group-card{padding:10px 12px}
 .group-head{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 2px;user-select:none}
