@@ -175,9 +175,9 @@ button{font-family:inherit;cursor:pointer}
 .tcard:active{cursor:grabbing}
 @media(max-width:768px){.tboard{grid-template-columns:1fr}}
 /* グループ */
-.group-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
-@media(max-width:768px){.group-grid{grid-template-columns:1fr}}
-.group-card{padding:10px 12px}
+.group-grid{column-count:2;column-gap:12px}
+@media(max-width:768px){.group-grid{column-count:1}}
+.group-card{padding:10px 12px;break-inside:avoid;margin-bottom:12px}
 .group-head{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 2px;user-select:none}
 .group-caret{color:var(--t3);font-size:.8rem;width:12px;flex-shrink:0}
 .group-name{font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
