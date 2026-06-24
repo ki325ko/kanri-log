@@ -176,7 +176,7 @@ button{font-family:inherit;cursor:pointer}
 .tcard:active{cursor:grabbing}
 @media(max-width:768px){.tboard{grid-template-columns:1fr}}
 /* グループ */
-.group-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+.group-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch}
 @media(max-width:768px){.group-grid{grid-template-columns:1fr}}
 .group-card{padding:6px 12px 4px}
 .group-head{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 2px;user-select:none}
@@ -898,7 +898,6 @@ function taskRowHtml(t, todayBtn) {
     <span class="task-title-i">${esc(t.title)}</span>
     <span class="task-meta-i">
       ${t.due&&!isT?`<span class="${isOverdue(t.due)&&!t.done?'overdue':''}">${isOverdue(t.due)&&!t.done?'⚠':''}${fmt(t.due)}</span>`:''}
-      <span class="pri-${t.priority||'med'}">${PL[t.priority||'med']}</span>
       ${todayBtn==='remove'
         ? `<button class="btn btn-ghost btn-xs" style="padding:2px 7px" title="今日から外す" onclick="event.stopPropagation();moveTaskToday('${t.id}',false)">✕</button>`
         : `<button class="btn ${isT?'btn-p':'btn-out'} btn-xs" style="padding:2px 8px" title="${isT?'今日から外す':'今日のタスクに入れる'}" onclick="event.stopPropagation();moveTaskToday('${t.id}',${isT?'false':'true'})">${isT?'⭐':'☆'}今日</button>`}
@@ -926,7 +925,6 @@ function renderTasks() {
         return `<div class="task-item ${done?'done':''}" onclick="openRoutineForm('${r.id}')">
           <div class="task-check ${done?'checked':''}" onclick="event.stopPropagation();toggleRoutine('${r.id}')">✓</div>
           <span class="task-title-i">${esc(r.title)}</span>
-          <span class="task-meta-i"><span class="pri-${r.priority||'med'}">${PL[r.priority||'med']}</span></span>
         </div>`;
       }).join('') : '<div class="empty-state" style="padding:14px 8px"><p style="font-size:.83rem">毎日繰り返すタスクを登録すると、ここで毎日チェックできます</p></div>'}
     </div>`;
