@@ -175,6 +175,8 @@ button{font-family:inherit;cursor:pointer}
 .tcard:active{cursor:grabbing}
 @media(max-width:768px){.tboard{grid-template-columns:1fr}}
 /* グループ */
+.group-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+@media(max-width:768px){.group-grid{grid-template-columns:1fr}}
 .group-card{padding:10px 12px}
 .group-head{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 2px;user-select:none}
 .group-caret{color:var(--t3);font-size:.8rem;width:12px;flex-shrink:0}
@@ -956,7 +958,7 @@ function renderTasks() {
     let list = (showDoneTasks ? all : all.filter(t=>!t.done)).sort(byPriDue);
     const collapsed = collapsedGroups[key];
     return `
-      <div class="card group-card" style="margin-bottom:12px">
+      <div class="card group-card">
         <div class="group-head" onclick="toggleGroupCollapse('${key}')">
           <span class="group-caret">${collapsed?'▸':'▾'}</span>
           <span class="group-name">${esc(g.name)}</span>
@@ -969,7 +971,7 @@ function renderTasks() {
       </div>`;
   }).join('');
 
-  el.innerHTML = routinesHtml + todayHtml + groupsBar + groupsHtml;
+  el.innerHTML = routinesHtml + todayHtml + groupsBar + `<div class="group-grid">${groupsHtml}</div>`;
 }
 
 function toggleShowDone(){ showDoneTasks=!showDoneTasks; renderTasks(); }
