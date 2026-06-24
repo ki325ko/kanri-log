@@ -179,10 +179,10 @@ button{font-family:inherit;cursor:pointer}
 .group-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch}
 @media(max-width:768px){.group-grid{grid-template-columns:1fr}}
 .group-card{padding:6px 12px 4px}
-.group-head{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 2px;user-select:none}
-.group-caret{color:var(--t3);font-size:.8rem;width:12px;flex-shrink:0}
-.group-name{font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.group-count{background:var(--pb);color:var(--p);font-size:.7rem;font-weight:700;padding:1px 8px;border-radius:10px;flex-shrink:0}
+.group-head{display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 2px 9px;user-select:none;border-bottom:2px solid var(--bdr);margin-bottom:4px}
+.group-caret{color:var(--t3);font-size:.85rem;width:13px;flex-shrink:0}
+.group-name{font-weight:800;font-size:1.08rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.group-count{background:var(--pb);color:var(--p);font-size:.74rem;font-weight:700;padding:1px 9px;border-radius:10px;flex-shrink:0}
 .tag-chip{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;background:var(--pb);color:var(--p);cursor:pointer;border:1.5px solid transparent}
 .tag-chip:hover,.tag-chip.active{background:var(--p);color:#fff}
 .tags-input{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;border:1.5px solid var(--bdr);border-radius:var(--rads);min-height:38px;align-items:center;cursor:text;background:var(--sur)}
